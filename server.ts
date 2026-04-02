@@ -13,7 +13,15 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Initialize PostgreSQL Database
-const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/usulan';
+let connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/usulan';
+
+// Fix for Neon/Vercel Postgres channel_binding issue with node-postgres
+if (connectionString.includes('channel_binding=require')) {
+  connectionString = connectionString.replace('?channel_binding=require&', '?')
+                                     .replace('&channel_binding=require', '')
+                                     .replace('?channel_binding=require', '');
+}
+
 const pool = new Pool({
   connectionString,
   ssl: connectionString.includes('neon.tech') || connectionString.includes('vercel-storage.com') || process.env.NODE_ENV === 'production' 
@@ -87,9 +95,9 @@ app.get('/api/stats', async (req, res) => {
       ditolak: parseInt(ditolak.rows[0].count),
       dikembalikan: parseInt(dikembalikan.rows[0].count)
     });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Failed to fetch stats' });
+  } catch (error: any) {
+    console.error('Stats error:', error);
+    res.status(500).json({ error: `Failed to fetch stats: ${error.message || 'Unknown error'}` });
   }
 });
 
