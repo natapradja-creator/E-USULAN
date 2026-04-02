@@ -2,93 +2,116 @@ import express from 'express';
 import { createServer as createViteServer } from 'vite';
 import path from 'path';
 import cors from 'cors';
-import Database from 'better-sqlite3';
+import pg from 'pg';
+
+const { Pool } = pg;
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-// Initialize SQLite Database
-const db = new Database('usulan.db');
+// Initialize PostgreSQL Database
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/usulan',
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : undefined
+});
 
 // Create table if not exists
-db.exec(`
-  CREATE TABLE IF NOT EXISTS usulan (
-    id_usulan TEXT PRIMARY KEY,
-    tanggal_usul TEXT,
-    pengusul TEXT,
-    usulan TEXT,
-    masalah TEXT,
-    alamat_lokasi TEXT,
-    usulan_ke TEXT,
-    opd_tujuan_awal TEXT,
-    opd_tujuan_akhir TEXT,
-    status_existing TEXT,
-    catatan TEXT,
-    rekomendasi_sekwan TEXT,
-    rekomendasi_mitra TEXT,
-    rekomendasi_skpd TEXT,
-    rekomendasi_tapd TEXT,
-    volume TEXT,
-    satuan TEXT,
-    anggaran TEXT,
-    jenis_belanja TEXT,
-    sub_kegiatan TEXT,
-    kategori TEXT,
-    status_validasi TEXT DEFAULT 'DRAFT',
-    catatan_validasi TEXT,
-    tanggal_validasi TEXT,
-    validator TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  )
-`);
+const initDb = async () => {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS usulan (
+        id_usulan TEXT PRIMARY KEY,
+        tanggal_usul TEXT,
+        pengusul TEXT,
+        usulan TEXT,
+        masalah TEXT,
+        alamat_lokasi TEXT,
+        usulan_ke TEXT,
+        opd_tujuan_awal TEXT,
+        opd_tujuan_akhir TEXT,
+        status_existing TEXT,
+        catatan TEXT,
+        rekomendasi_sekwan TEXT,
+        rekomendasi_mitra TEXT,
+        rekomendasi_skpd TEXT,
+        rekomendasi_tapd TEXT,
+        volume TEXT,
+        satuan TEXT,
+        anggaran TEXT,
+        jenis_belanja TEXT,
+        sub_kegiatan TEXT,
+        kategori TEXT,
+        status_validasi TEXT DEFAULT 'DRAFT',
+        catatan_validasi TEXT,
+        tanggal_validasi TEXT,
+        validator TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    console.log('Database initialized successfully');
+  } catch (err) {
+    console.error('Failed to initialize database:', err);
+  }
+};
+
+initDb();
 
 // API Routes
 
 // Get Dashboard Stats
-app.get('/api/stats', (req, res) => {
+app.get('/api/stats', async (req, res) => {
   try {
-    const total_usulan = (db.prepare("SELECT COUNT(*) as count FROM usulan").get() as any).count;
-    const total_hibah = (db.prepare("SELECT COUNT(*) as count FROM usulan WHERE kategori = 'HIBAH'").get() as any).count;
-    const total_pokir = (db.prepare("SELECT COUNT(*) as count FROM usulan WHERE kategori = 'POKIR'").get() as any).count;
-    const diterima = (db.prepare("SELECT COUNT(*) as count FROM usulan WHERE status_validasi = 'DITERIMA'").get() as any).count;
-    const ditolak = (db.prepare("SELECT COUNT(*) as count FROM usulan WHERE status_validasi = 'DITOLAK'").get() as any).count;
-    const dikembalikan = (db.prepare("SELECT COUNT(*) as count FROM usulan WHERE status_validasi = 'DIKEMBALIKAN'").get() as any).count;
+    const total_usulan = await pool.query("SELECT COUNT(*) as count FROM usulan");
+    const total_hibah = await pool.query("SELECT COUNT(*) as count FROM usulan WHERE kategori = 'HIBAH'");
+    const total_pokir = await pool.query("SELECT COUNT(*) as count FROM usulan WHERE kategori = 'POKIR'");
+    const diterima = await pool.query("SELECT COUNT(*) as count FROM usulan WHERE status_validasi = 'DITERIMA'");
+    const ditolak = await pool.query("SELECT COUNT(*) as count FROM usulan WHERE status_validasi = 'DITOLAK'");
+    const dikembalikan = await pool.query("SELECT COUNT(*) as count FROM usulan WHERE status_validasi = 'DIKEMBALIKAN'");
 
     res.json({
-      total_usulan,
-      total_hibah,
-      total_pokir,
-      diterima,
-      ditolak,
-      dikembalikan
+      total_usulan: parseInt(total_usulan.rows[0].count),
+      total_hibah: parseInt(total_hibah.rows[0].count),
+      total_pokir: parseInt(total_pokir.rows[0].count),
+      diterima: parseInt(diterima.rows[0].count),
+      ditolak: parseInt(ditolak.rows[0].count),
+      dikembalikan: parseInt(dikembalikan.rows[0].count)
     });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to fetch stats' });
   }
 });
 
 // Get Usulan List
-app.get('/api/usulan', (req, res) => {
+app.get('/api/usulan', async (req, res) => {
   const { kategori, search, status, opd, page = 1, limit = 10 } = req.query;
   
   let query = "SELECT * FROM usulan WHERE 1=1";
+  let countQueryStr = "SELECT COUNT(*) as count FROM usulan WHERE 1=1";
   const params: any[] = [];
+  let paramIndex = 1;
 
   if (kategori) {
-    query += " AND kategori = ?";
+    query += ` AND kategori = $${paramIndex}`;
+    countQueryStr += ` AND kategori = $${paramIndex}`;
     params.push(kategori);
+    paramIndex++;
   }
   if (status && status !== 'ALL') {
-    query += " AND status_validasi = ?";
+    query += ` AND status_validasi = $${paramIndex}`;
+    countQueryStr += ` AND status_validasi = $${paramIndex}`;
     params.push(status);
+    paramIndex++;
   }
   if (opd && opd !== 'ALL') {
-    query += " AND opd_tujuan_akhir = ?";
+    query += ` AND opd_tujuan_akhir = $${paramIndex}`;
+    countQueryStr += ` AND opd_tujuan_akhir = $${paramIndex}`;
     params.push(opd);
+    paramIndex++;
   }
   if (search) {
     const searchCols = [
@@ -99,9 +122,11 @@ app.get('/api/usulan', (req, res) => {
       'jenis_belanja', 'sub_kegiatan', 'status_validasi', 'catatan_validasi',
       'validator'
     ];
-    const likeClauses = searchCols.map(col => `${col} LIKE ?`).join(' OR ');
+    const likeClauses = searchCols.map(col => `${col} ILIKE $${paramIndex}`).join(' OR ');
     query += ` AND (${likeClauses})`;
-    searchCols.forEach(() => params.push(`%${search}%`));
+    countQueryStr += ` AND (${likeClauses})`;
+    params.push(`%${search}%`);
+    paramIndex++;
   }
 
   query += " ORDER BY created_at DESC";
@@ -109,12 +134,13 @@ app.get('/api/usulan', (req, res) => {
   try {
     // Pagination
     const offset = (Number(page) - 1) * Number(limit);
-    const paginatedQuery = `${query} LIMIT ? OFFSET ?`;
-    const data = db.prepare(paginatedQuery).all(...params, Number(limit), offset);
+    const paginatedQuery = `${query} LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
     
-    // Total count for pagination
-    const countQuery = `SELECT COUNT(*) as count FROM (${query})`;
-    const total = (db.prepare(countQuery).get(...params) as any).count;
+    const dataParams = [...params, Number(limit), offset];
+    const { rows: data } = await pool.query(paginatedQuery, dataParams);
+    
+    const { rows: countRows } = await pool.query(countQueryStr, params);
+    const total = parseInt(countRows[0].count);
 
     res.json({
       data,
@@ -123,148 +149,171 @@ app.get('/api/usulan', (req, res) => {
       totalPages: Math.ceil(total / Number(limit))
     });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to fetch data' });
   }
 });
 
 // Check Duplicates
-app.post('/api/usulan/check-duplicates', (req, res) => {
+app.post('/api/usulan/check-duplicates', async (req, res) => {
   const { ids } = req.body;
-  if (!ids || !Array.isArray(ids)) {
+  if (!ids || !Array.isArray(ids) || ids.length === 0) {
     return res.status(400).json({ error: 'Invalid input' });
   }
 
   try {
-    const placeholders = ids.map(() => '?').join(',');
+    const placeholders = ids.map((_, i) => `$${i + 1}`).join(',');
     const query = `SELECT id_usulan FROM usulan WHERE id_usulan IN (${placeholders})`;
-    const existing = db.prepare(query).all(...ids).map((row: any) => row.id_usulan);
-    res.json({ existing });
+    const { rows } = await pool.query(query, ids);
+    res.json({ existing: rows.map(r => r.id_usulan) });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to check duplicates' });
   }
 });
 
 // Import Usulan
-app.post('/api/usulan/import', (req, res) => {
+app.post('/api/usulan/import', async (req, res) => {
   const { data } = req.body;
   if (!data || !Array.isArray(data)) {
     return res.status(400).json({ error: 'Invalid input' });
   }
 
+  const client = await pool.connect();
   try {
-    const insert = db.prepare(`
+    await client.query('BEGIN');
+    let imported = 0;
+    
+    const query = `
       INSERT INTO usulan (
         id_usulan, tanggal_usul, pengusul, usulan, masalah, alamat_lokasi,
         usulan_ke, opd_tujuan_awal, opd_tujuan_akhir, status_existing, catatan,
         rekomendasi_sekwan, rekomendasi_mitra, rekomendasi_skpd, rekomendasi_tapd,
         volume, satuan, anggaran, jenis_belanja, sub_kegiatan, kategori, status_validasi
       ) VALUES (
-        @id_usulan, @tanggal_usul, @pengusul, @usulan, @masalah, @alamat_lokasi,
-        @usulan_ke, @opd_tujuan_awal, @opd_tujuan_akhir, @status_existing, @catatan,
-        @rekomendasi_sekwan, @rekomendasi_mitra, @rekomendasi_skpd, @rekomendasi_tapd,
-        @volume, @satuan, @anggaran, @jenis_belanja, @sub_kegiatan, @kategori, 'DRAFT'
-      )
-    `);
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, 'DRAFT'
+      ) ON CONFLICT (id_usulan) DO NOTHING
+    `;
 
-    const insertMany = db.transaction((usulans) => {
-      let imported = 0;
-      for (const usulan of usulans) {
-        try {
-          insert.run(usulan);
-          imported++;
-        } catch (err: any) {
-          // Skip duplicates silently during transaction if any slipped through
-          if (err.code !== 'SQLITE_CONSTRAINT_PRIMARYKEY') {
-            throw err;
-          }
-        }
+    for (const usulan of data) {
+      const values = [
+        usulan.id_usulan, usulan.tanggal_usul, usulan.pengusul, usulan.usulan, usulan.masalah, usulan.alamat_lokasi,
+        usulan.usulan_ke, usulan.opd_tujuan_awal, usulan.opd_tujuan_akhir, usulan.status_existing, usulan.catatan,
+        usulan.rekomendasi_sekwan, usulan.rekomendasi_mitra, usulan.rekomendasi_skpd, usulan.rekomendasi_tapd,
+        usulan.volume, usulan.satuan, usulan.anggaran, usulan.jenis_belanja, usulan.sub_kegiatan, usulan.kategori
+      ];
+      const result = await client.query(query, values);
+      if (result.rowCount && result.rowCount > 0) {
+        imported++;
       }
-      return imported;
-    });
-
-    const importedCount = insertMany(data);
-    res.json({ success: true, imported: importedCount });
+    }
+    
+    await client.query('COMMIT');
+    res.json({ success: true, imported });
   } catch (error) {
+    await client.query('ROLLBACK');
     console.error(error);
     res.status(500).json({ error: 'Failed to import data' });
+  } finally {
+    client.release();
   }
 });
 
 // Validate Usulan
-app.post('/api/usulan/:id/validate', (req, res) => {
+app.post('/api/usulan/:id/validate', async (req, res) => {
   const { id } = req.params;
-  const { status, catatan, validator, anggaran } = req.body;
+  const { status, catatan, validator, anggaran, volume, satuan } = req.body;
 
   if (!status || !catatan || catatan.length < 10) {
     return res.status(400).json({ error: 'Status and catatan (min 10 chars) are required' });
   }
 
-  if (status === 'DITERIMA' && (!anggaran || anggaran.trim() === '' || anggaran === '0')) {
-    return res.status(400).json({ error: 'Anggaran is required when accepting usulan' });
+  if (status === 'DITERIMA') {
+    if (!anggaran || anggaran.trim() === '' || anggaran === '0') {
+      return res.status(400).json({ error: 'Anggaran is required when accepting usulan' });
+    }
+    if (!volume || volume.trim() === '') {
+      return res.status(400).json({ error: 'Volume is required when accepting usulan' });
+    }
+    if (!satuan || satuan.trim() === '') {
+      return res.status(400).json({ error: 'Satuan is required when accepting usulan' });
+    }
   }
 
   try {
-    const update = db.prepare(`
+    const query = `
       UPDATE usulan 
-      SET status_validasi = ?, catatan_validasi = ?, rekomendasi_skpd = ?, tanggal_validasi = CURRENT_TIMESTAMP, validator = ?, anggaran = ?
-      WHERE id_usulan = ?
-    `);
+      SET status_validasi = $1, catatan_validasi = $2, rekomendasi_skpd = $3, tanggal_validasi = CURRENT_TIMESTAMP, validator = $4, anggaran = $5, volume = $6, satuan = $7
+      WHERE id_usulan = $8
+    `;
     
-    const result = update.run(status, catatan, catatan, validator || 'System', anggaran || null, id);
+    const result = await pool.query(query, [
+      status, 
+      catatan, 
+      catatan, 
+      validator || 'System', 
+      anggaran || null, 
+      volume || null, 
+      satuan || null, 
+      id
+    ]);
     
-    if (result.changes === 0) {
+    if (result.rowCount === 0) {
       return res.status(404).json({ error: 'Usulan not found' });
     }
 
     res.json({ success: true });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to validate usulan' });
   }
 });
 
 // Bulk Delete
-app.post('/api/usulan/bulk-delete', (req, res) => {
+app.post('/api/usulan/bulk-delete', async (req, res) => {
   const { ids } = req.body;
-  if (!ids || !Array.isArray(ids)) {
+  if (!ids || !Array.isArray(ids) || ids.length === 0) {
     return res.status(400).json({ error: 'Invalid input' });
   }
 
   try {
-    const placeholders = ids.map(() => '?').join(',');
+    const placeholders = ids.map((_, i) => `$${i + 1}`).join(',');
     const query = `DELETE FROM usulan WHERE id_usulan IN (${placeholders})`;
-    const result = db.prepare(query).run(...ids);
-    res.json({ success: true, deleted: result.changes });
+    const result = await pool.query(query, ids);
+    res.json({ success: true, deleted: result.rowCount });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to delete usulan' });
   }
 });
 
 // Clear All Data
-app.delete('/api/usulan/clear', (req, res) => {
+app.delete('/api/usulan/clear', async (req, res) => {
   const { kategori } = req.query;
   
   try {
     let result;
     if (kategori) {
-      result = db.prepare('DELETE FROM usulan WHERE kategori = ?').run(kategori);
+      result = await pool.query('DELETE FROM usulan WHERE kategori = $1', [kategori]);
     } else {
-      result = db.prepare('DELETE FROM usulan').run();
+      result = await pool.query('DELETE FROM usulan');
     }
-    res.json({ success: true, deleted: result.changes });
+    res.json({ success: true, deleted: result.rowCount });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to clear data' });
   }
 });
 
 async function startServer() {
   // Vite middleware for development
-  if (process.env.NODE_ENV !== 'production') {
+  if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa',
     });
     app.use(vite.middlewares);
-  } else {
+  } else if (!process.env.VERCEL) {
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
     app.get('*', (req, res) => {
@@ -272,9 +321,14 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-  });
+  // Only listen if not running in Vercel serverless environment
+  if (!process.env.VERCEL) {
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`Server running on http://localhost:${PORT}`);
+    });
+  }
 }
 
 startServer();
+
+export default app;
