@@ -107,3 +107,25 @@ Kontribusi selalu diterima! Silakan buat *Pull Request* atau buka *Issue* jika A
 ## 📄 Lisensi
 
 [MIT License](LICENSE)
+
+---
+
+## 💡 Pembelajaran & Troubleshooting (Vercel + Neon DB)
+
+Selama proses *deployment* aplikasi ini ke Vercel dengan database PostgreSQL dari Neon DB, terdapat beberapa isu krusial yang berhasil diselesaikan. Berikut adalah dokumentasi pembelajarannya agar tidak terulang di masa depan:
+
+### 1. Masalah Parameter `channel_binding=require` pada Neon DB
+*   **Masalah:** Neon DB (Vercel Postgres) baru-baru ini menambahkan parameter `?channel_binding=require` pada URL koneksi database mereka untuk alasan keamanan. Sayangnya, *library* standar Node.js yaitu `pg` (node-postgres) belum mendukung parameter ini secara bawaan. Hal ini menyebabkan koneksi ditolak secara diam-diam (*silent connection drop*).
+*   **Solusi:** Sebelum memasukkan `DATABASE_URL` ke dalam `new Pool()`, kita harus membersihkan URL tersebut dari string `channel_binding=require` menggunakan `.replace()`.
+
+### 2. Vercel Serverless Function Limit (Error 500: `FUNCTION_INVOCATION_FAILED`)
+*   **Masalah:** Saat menggunakan Express.js di Vercel, Vercel akan mengubah *entry point* backend menjadi Serverless Function. Jika file backend (`server.ts`) mengimpor atau mem-bundle *library* development yang besar seperti `vite` (meskipun hanya dijalankan di mode development), ukuran Serverless Function akan membengkak melebihi batas maksimal Vercel (50MB). Akibatnya, fungsi akan *crash* saat *cold start* dan mengembalikan error 500 tanpa log yang jelas.
+*   **Solusi:** Pisahkan kode backend murni (Express + Database) ke dalam file tersendiri (misal: `api/index.ts`). Biarkan `server.ts` hanya bertugas untuk menjalankan Vite di komputer lokal. Vercel hanya akan membaca folder `/api` sebagai Serverless Function tanpa ikut mem-bundle Vite.
+
+### 3. Bahaya "Silent Errors" di Frontend
+*   **Masalah:** Saat frontend melakukan *fetch* ke backend dan terjadi error, UI seringkali hanya menampilkan pesan generik secara *hardcode* (misal: "Gagal memuat data"). Hal ini sangat menyulitkan proses *debugging* karena kita tidak tahu apakah error berasal dari database, *timeout*, atau *syntax error*.
+*   **Solusi:** Tangkap pesan error mentah (*raw error message*) dari backend (`error.message`) dan teruskan ke frontend. Tampilkan pesan error teknis tersebut di UI (bisa dalam kotak merah khusus) agar *developer* langsung tahu akar masalahnya tanpa harus menebak-nebak.
+
+### 4. Vercel Routing (`vercel.json`)
+*   **Masalah:** Vercel tidak tahu secara otomatis mana rute yang harus diarahkan ke backend Express dan mana yang diarahkan ke frontend React (SPA).
+*   **Solusi:** Wajib membuat file `vercel.json` yang mendefinisikan *rewrites*. Semua *request* yang berawalan `/api/(.*)` diarahkan ke file backend (`api/index.ts`), sedangkan *request* lainnya diarahkan ke `/index.html` agar ditangani oleh React Router.
