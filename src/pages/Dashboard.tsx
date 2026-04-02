@@ -5,10 +5,25 @@ import { FileText, CheckCircle, XCircle, RefreshCcw, Layers, BarChart3, Loader2 
 
 export function Dashboard() {
   const [stats, setStats] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchStats().then(setStats).catch(console.error);
+    fetchStats()
+      .then(setStats)
+      .catch((err) => {
+        console.error(err);
+        setError(err.message || 'Gagal memuat data dari server');
+      });
   }, []);
+
+  if (error) return (
+    <div className="flex flex-col items-center justify-center h-[60vh] text-red-500 space-y-4">
+      <XCircle className="h-12 w-12" />
+      <p className="text-lg font-medium">Terjadi Kesalahan</p>
+      <p className="text-sm text-gray-500">{error}</p>
+      <p className="text-xs text-gray-400 mt-4">Pastikan database sudah terhubung dengan benar di Vercel.</p>
+    </div>
+  );
 
   if (!stats) return (
     <div className="flex flex-col items-center justify-center h-[60vh] text-gray-500 space-y-4">

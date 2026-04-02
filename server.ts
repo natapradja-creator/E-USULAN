@@ -64,6 +64,11 @@ initDb();
 
 // API Routes
 
+// Health Check
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', message: 'API is running', db: connectionString ? 'configured' : 'missing' });
+});
+
 // Get Dashboard Stats
 app.get('/api/stats', async (req, res) => {
   try {

@@ -26,6 +26,7 @@ export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
   });
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Filters
   const [search, setSearch] = useState('');
@@ -46,6 +47,7 @@ export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
 
   const loadData = async () => {
     setLoading(true);
+    setError(null);
     try {
       const res = await fetchUsulan({
         kategori,
@@ -59,8 +61,10 @@ export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
       setTotal(res.total);
       setTotalPages(res.totalPages);
       setSelectedIds([]); // Reset selection on page change
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
+      setError(error.message || 'Gagal memuat data');
+      toast.error('Gagal memuat data');
     } finally {
       setLoading(false);
     }
@@ -221,6 +225,16 @@ export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
                     <div className="flex flex-col items-center justify-center space-y-3">
                       <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
                       <p>Memuat data...</p>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : error ? (
+                <TableRow>
+                  <TableCell colSpan={26} className="text-center py-20 text-red-500">
+                    <div className="flex flex-col items-center justify-center space-y-3">
+                      <AlertTriangle className="h-8 w-8" />
+                      <p className="font-medium">Gagal memuat data</p>
+                      <p className="text-sm text-gray-500">{error}</p>
                     </div>
                   </TableCell>
                 </TableRow>
