@@ -234,7 +234,9 @@ export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
                     <div className="flex flex-col items-center justify-center space-y-3">
                       <AlertTriangle className="h-8 w-8" />
                       <p className="font-medium">Gagal memuat data</p>
-                      <p className="text-sm text-gray-500">{error}</p>
+                      <div className="bg-red-50 p-4 rounded-md border border-red-200 max-w-2xl overflow-auto text-left">
+                        <p className="text-sm font-mono text-red-800 break-words">{error}</p>
+                      </div>
                     </div>
                   </TableCell>
                 </TableRow>

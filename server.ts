@@ -2,6 +2,7 @@ import express from 'express';
 import path from 'path';
 import cors from 'cors';
 import pg from 'pg';
+import { sql, createPool } from '@vercel/postgres';
 
 const { Pool } = pg;
 
@@ -13,21 +14,30 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Initialize PostgreSQL Database
-let connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/usulan';
+let pool: any;
 
-// Fix for Neon/Vercel Postgres channel_binding issue with node-postgres
-if (connectionString.includes('channel_binding=require')) {
-  connectionString = connectionString.replace('?channel_binding=require&', '?')
-                                     .replace('&channel_binding=require', '')
-                                     .replace('?channel_binding=require', '');
+if (process.env.POSTGRES_URL) {
+  // Use Vercel Postgres if available
+  pool = createPool({
+    connectionString: process.env.POSTGRES_URL
+  });
+} else {
+  // Fallback to standard pg Pool for local development
+  let connectionString = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/usulan';
+  
+  if (connectionString.includes('channel_binding=require')) {
+    connectionString = connectionString.replace('?channel_binding=require&', '?')
+                                       .replace('&channel_binding=require', '')
+                                       .replace('?channel_binding=require', '');
+  }
+  
+  pool = new Pool({
+    connectionString,
+    ssl: connectionString.includes('neon.tech') || process.env.NODE_ENV === 'production' 
+      ? { rejectUnauthorized: false } 
+      : undefined
+  });
 }
-
-const pool = new Pool({
-  connectionString,
-  ssl: connectionString.includes('neon.tech') || connectionString.includes('vercel-storage.com') || process.env.NODE_ENV === 'production' 
-    ? { rejectUnauthorized: false } 
-    : undefined
-});
 
 // Create table if not exists
 const initDb = async () => {
@@ -74,11 +84,13 @@ initDb();
 
 // Health Check
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', message: 'API is running', db: connectionString ? 'configured' : 'missing' });
+  res.setHeader('Cache-Control', 'no-store');
+  res.json({ status: 'ok', message: 'API is running', db: pool ? 'configured' : 'missing' });
 });
 
 // Get Dashboard Stats
 app.get('/api/stats', async (req, res) => {
+  res.setHeader('Cache-Control', 'no-store');
   try {
     const total_usulan = await pool.query("SELECT COUNT(*) as count FROM usulan");
     const total_hibah = await pool.query("SELECT COUNT(*) as count FROM usulan WHERE kategori = 'HIBAH'");
@@ -97,12 +109,13 @@ app.get('/api/stats', async (req, res) => {
     });
   } catch (error: any) {
     console.error('Stats error:', error);
-    res.status(500).json({ error: `Failed to fetch stats: ${error.message || 'Unknown error'}` });
+    res.status(500).json({ error: `[DB_ERROR] ${error.message || 'Unknown error'}` });
   }
 });
 
 // Get Usulan List
 app.get('/api/usulan', async (req, res) => {
+  res.setHeader('Cache-Control', 'no-store');
   const { kategori, search, status, opd, page = 1, limit = 10 } = req.query;
   
   let query = "SELECT * FROM usulan WHERE 1=1";

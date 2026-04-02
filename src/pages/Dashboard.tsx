@@ -20,7 +20,9 @@ export function Dashboard() {
     <div className="flex flex-col items-center justify-center h-[60vh] text-red-500 space-y-4">
       <XCircle className="h-12 w-12" />
       <p className="text-lg font-medium">Terjadi Kesalahan</p>
-      <p className="text-sm text-gray-500">{error}</p>
+      <div className="bg-red-50 p-4 rounded-md border border-red-200 w-full max-w-2xl overflow-auto">
+        <p className="text-sm font-mono text-red-800 break-words">{error}</p>
+      </div>
       <p className="text-xs text-gray-400 mt-4">Pastikan database sudah terhubung dengan benar di Vercel.</p>
     </div>
   );
