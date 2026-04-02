@@ -2,8 +2,17 @@ export const API_URL = '/api';
 
 export async function fetchStats() {
   const res = await fetch(`${API_URL}/stats`);
-  if (!res.ok) throw new Error('Failed to fetch stats');
   const text = await res.text();
+  
+  if (!res.ok) {
+    try {
+      const errData = JSON.parse(text);
+      throw new Error(errData.error || 'Failed to fetch stats');
+    } catch (e) {
+      throw new Error(`Failed to fetch stats: ${res.status} ${res.statusText}`);
+    }
+  }
+  
   try {
     return JSON.parse(text);
   } catch (e) {
@@ -15,8 +24,17 @@ export async function fetchStats() {
 export async function fetchUsulan(params: any) {
   const query = new URLSearchParams(params).toString();
   const res = await fetch(`${API_URL}/usulan?${query}`);
-  if (!res.ok) throw new Error('Failed to fetch usulan');
   const text = await res.text();
+  
+  if (!res.ok) {
+    try {
+      const errData = JSON.parse(text);
+      throw new Error(errData.error || 'Failed to fetch usulan');
+    } catch (e) {
+      throw new Error(`Failed to fetch usulan: ${res.status} ${res.statusText}`);
+    }
+  }
+  
   try {
     return JSON.parse(text);
   } catch (e) {
