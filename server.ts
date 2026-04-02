@@ -13,10 +13,10 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Initialize PostgreSQL Database
-const connectionString = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/usulan';
+const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/usulan';
 const pool = new Pool({
   connectionString,
-  ssl: connectionString.includes('neon.tech') || process.env.NODE_ENV === 'production' 
+  ssl: connectionString.includes('neon.tech') || connectionString.includes('vercel-storage.com') || process.env.NODE_ENV === 'production' 
     ? { rejectUnauthorized: false } 
     : undefined
 });
