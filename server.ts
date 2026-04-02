@@ -2,7 +2,6 @@ import express from 'express';
 import path from 'path';
 import cors from 'cors';
 import pg from 'pg';
-import { sql, createPool } from '@vercel/postgres';
 
 const { Pool } = pg;
 
@@ -14,33 +13,26 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Initialize PostgreSQL Database
-let pool: any;
+let connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/usulan';
 
-if (process.env.POSTGRES_URL) {
-  // Use Vercel Postgres if available
-  pool = createPool({
-    connectionString: process.env.POSTGRES_URL
-  });
-} else {
-  // Fallback to standard pg Pool for local development
-  let connectionString = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/usulan';
-  
-  if (connectionString.includes('channel_binding=require')) {
-    connectionString = connectionString.replace('?channel_binding=require&', '?')
-                                       .replace('&channel_binding=require', '')
-                                       .replace('?channel_binding=require', '');
-  }
-  
-  pool = new Pool({
-    connectionString,
-    ssl: connectionString.includes('neon.tech') || process.env.NODE_ENV === 'production' 
-      ? { rejectUnauthorized: false } 
-      : undefined
-  });
+// Fix for Neon/Vercel Postgres channel_binding issue with node-postgres
+if (connectionString.includes('channel_binding=require')) {
+  connectionString = connectionString.replace('?channel_binding=require&', '?')
+                                     .replace('&channel_binding=require', '')
+                                     .replace('?channel_binding=require', '');
 }
 
-// Create table if not exists
-const initDb = async () => {
+const pool = new Pool({
+  connectionString,
+  ssl: connectionString.includes('neon.tech') || connectionString.includes('vercel-storage.com') || process.env.NODE_ENV === 'production' 
+    ? { rejectUnauthorized: false } 
+    : undefined
+});
+
+// API Routes
+
+// Init DB Endpoint
+app.get('/api/init-db', async (req, res) => {
   try {
     await pool.query(`
       CREATE TABLE IF NOT EXISTS usulan (
@@ -72,15 +64,12 @@ const initDb = async () => {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
-    console.log('Database initialized successfully');
-  } catch (err) {
-    console.error('Failed to initialize database:', err);
+    res.json({ status: 'ok', message: 'Database initialized successfully' });
+  } catch (error: any) {
+    console.error('Database initialization error:', error);
+    res.status(500).json({ error: error.message });
   }
-};
-
-initDb();
-
-// API Routes
+});
 
 // Health Check
 app.get('/api/health', (req, res) => {

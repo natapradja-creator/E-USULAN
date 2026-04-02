@@ -9,7 +9,7 @@ export async function fetchStats() {
       const errData = JSON.parse(text);
       throw new Error(errData.error || 'Failed to fetch stats');
     } catch (e) {
-      throw new Error(`Failed to fetch stats: ${res.status} ${res.statusText}`);
+      throw new Error(`HTTP ${res.status}: ${text.substring(0, 300)}`);
     }
   }
   
