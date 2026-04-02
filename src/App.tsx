@@ -11,15 +11,9 @@ function Sidebar({ isOpen, toggleSidebar }: { isOpen: boolean, toggleSidebar: ()
   
   const navItems = [
     { name: 'Dashboard', path: '/', icon: LayoutDashboard },
+    { name: 'Semua Usulan', path: '/usulan', icon: Package },
     { name: 'Hibah', path: '/hibah', icon: FileText },
     { name: 'Pokir', path: '/pokir', icon: Layers },
-    { name: 'Assets', path: '#', icon: Package },
-    { name: 'Licenses', path: '#', icon: FileBox },
-    { name: 'Accessories', path: '#', icon: Box },
-    { name: 'People', path: '#', icon: Users },
-    { name: 'Settings', path: '#', icon: Settings },
-    { name: 'Security', path: '#', icon: Shield },
-    { name: 'Keys', path: '#', icon: Key },
   ];
 
   return (
@@ -107,6 +101,7 @@ export default function App() {
       <Layout>
         <Routes>
           <Route path="/" element={<Dashboard />} />
+          <Route path="/usulan" element={<UsulanPage kategori="ALL" />} />
           <Route path="/hibah" element={<UsulanPage kategori="HIBAH" />} />
           <Route path="/pokir" element={<UsulanPage kategori="POKIR" />} />
         </Routes>

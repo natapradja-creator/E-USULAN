@@ -64,7 +64,7 @@ export function Dashboard() {
           value={stats.total_usulan} 
           icon={Package} 
           colorClass="bg-[#E2F7D8]" 
-          linkTo="/hibah" 
+          linkTo="/usulan" 
         />
         <StatCard 
           title="Total Hibah" 
@@ -85,21 +85,21 @@ export function Dashboard() {
           value={stats.diterima} 
           icon={CheckCircle} 
           colorClass="bg-[#FFD6D6]" 
-          linkTo="#" 
+          linkTo="/usulan?status=DITERIMA" 
         />
         <StatCard 
           title="Ditolak" 
           value={stats.ditolak} 
           icon={XCircle} 
           colorClass="bg-[#D1D5FF]" 
-          linkTo="#" 
+          linkTo="/usulan?status=DITOLAK" 
         />
         <StatCard 
           title="Dikembalikan" 
           value={stats.dikembalikan} 
           icon={RefreshCcw} 
           colorClass="bg-[#B9FBC0]" 
-          linkTo="#" 
+          linkTo="/usulan?status=DIKEMBALIKAN" 
         />
       </div>
     </div>

@@ -114,7 +114,7 @@ app.get('/api/usulan', async (req, res) => {
   const params: any[] = [];
   let paramIndex = 1;
 
-  if (kategori) {
+  if (kategori && kategori !== 'ALL') {
     query += ` AND kategori = $${paramIndex}`;
     countQueryStr += ` AND kategori = $${paramIndex}`;
     params.push(kategori);

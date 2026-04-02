@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -12,11 +13,14 @@ import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 
 interface UsulanTableProps {
-  kategori: 'HIBAH' | 'POKIR';
+  kategori: 'HIBAH' | 'POKIR' | 'ALL';
   refreshTrigger: number;
 }
 
 export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialStatus = searchParams.get('status') || 'ALL';
+
   const [data, setData] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -30,8 +34,22 @@ export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
 
   // Filters
   const [search, setSearch] = useState('');
-  const [status, setStatus] = useState('ALL');
+  const [status, setStatus] = useState(initialStatus);
   const [opd, setOpd] = useState('ALL');
+
+  // Update URL when status changes
+  const handleStatusChange = (newStatus: string) => {
+    setStatus(newStatus);
+    setPage(1);
+    
+    // Update URL query params
+    if (newStatus === 'ALL') {
+      searchParams.delete('status');
+    } else {
+      searchParams.set('status', newStatus);
+    }
+    setSearchParams(searchParams);
+  };
 
   // Save limit to localStorage when it changes
   useEffect(() => {
@@ -157,7 +175,7 @@ export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          <Select value={status} onValueChange={(v) => { setStatus(v); setPage(1); }}>
+          <Select value={status} onValueChange={handleStatusChange}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Semua Status" />
             </SelectTrigger>
