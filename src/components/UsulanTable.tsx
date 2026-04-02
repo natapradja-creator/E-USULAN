@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { fetchUsulan, bulkDeleteUsulan, clearUsulan } from '@/lib/api';
 import { ValidationModal } from './ValidationModal';
-import { Search, ChevronLeft, ChevronRight, FileText, Trash2, AlertTriangle, Loader2 } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, FileText, Trash2, AlertTriangle, Loader2, CheckCircle, XCircle, AlertCircle, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -85,10 +85,19 @@ export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'DITERIMA': return <Badge className="bg-green-500">Diterima</Badge>;
-      case 'DITOLAK': return <Badge variant="destructive">Ditolak</Badge>;
-      case 'DIKEMBALIKAN': return <Badge variant="secondary">Dikembalikan</Badge>;
-      default: return <Badge variant="outline">Draft</Badge>;
+      case 'DITERIMA': return <Badge className="bg-green-100 text-green-800 border-green-200 hover:bg-green-200 flex items-center gap-1 w-fit"><CheckCircle className="w-3 h-3"/> Diterima</Badge>;
+      case 'DITOLAK': return <Badge className="bg-red-100 text-red-800 border-red-200 hover:bg-red-200 flex items-center gap-1 w-fit"><XCircle className="w-3 h-3"/> Ditolak</Badge>;
+      case 'DIKEMBALIKAN': return <Badge className="bg-orange-100 text-orange-800 border-orange-200 hover:bg-orange-200 flex items-center gap-1 w-fit"><AlertCircle className="w-3 h-3"/> Dikembalikan</Badge>;
+      default: return <Badge className="bg-gray-100 text-gray-800 border-gray-200 hover:bg-gray-200 flex items-center gap-1 w-fit"><Clock className="w-3 h-3"/> Draft</Badge>;
+    }
+  };
+
+  const getRowClassName = (status: string) => {
+    switch (status) {
+      case 'DITERIMA': return "hover:bg-green-100 bg-green-50";
+      case 'DITOLAK': return "hover:bg-red-100 bg-red-50";
+      case 'DIKEMBALIKAN': return "hover:bg-orange-100 bg-orange-50";
+      default: return "hover:bg-gray-100 bg-white";
     }
   };
 
@@ -178,6 +187,17 @@ export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
         </div>
       </div>
 
+      <div className="flex flex-wrap items-center gap-4 text-xs text-gray-600 bg-gray-50/50 p-3 rounded-lg border border-gray-100">
+        <span className="font-semibold text-gray-700 flex items-center gap-1.5">
+          <AlertCircle className="w-4 h-4 text-blue-500" />
+          Keterangan Warna Baris:
+        </span>
+        <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-green-100 border border-green-300"></div> Diterima</div>
+        <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-red-100 border border-red-300"></div> Ditolak</div>
+        <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-orange-100 border border-orange-300"></div> Dikembalikan</div>
+        <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-white border border-gray-300"></div> Draft</div>
+      </div>
+
       <div className="border rounded-md overflow-hidden bg-white">
         <div className="overflow-x-auto">
           <Table className="w-full">
@@ -248,7 +268,7 @@ export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
                 </TableRow>
               ) : (
                 data.map((row) => (
-                  <TableRow key={row.id_usulan} className="hover:bg-gray-50">
+                  <TableRow key={row.id_usulan} className={getRowClassName(row.status_validasi)}>
                     <TableCell className="text-center whitespace-nowrap">
                       <input 
                         type="checkbox" 

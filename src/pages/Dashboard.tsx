@@ -1,7 +1,27 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { fetchStats } from '@/lib/api';
-import { FileText, CheckCircle, XCircle, RefreshCcw, Layers, BarChart3, Loader2 } from 'lucide-react';
+import { FileText, CheckCircle, XCircle, RefreshCcw, Layers, BarChart3, Loader2, Package, Box, Users, ArrowRight, FileBox } from 'lucide-react';
+import { Link } from 'react-router-dom';
+
+function StatCard({ title, value, icon: Icon, colorClass, linkTo }: { title: string, value: number | string, icon: any, colorClass: string, linkTo: string }) {
+  return (
+    <div className={`rounded-3xl p-6 flex flex-col justify-between h-40 ${colorClass}`}>
+      <div className="flex justify-between items-start">
+        <h3 className="font-medium text-gray-800">{title}</h3>
+        <div className="p-2 bg-white/40 rounded-full">
+          <Icon className="h-5 w-5 text-gray-800" />
+        </div>
+      </div>
+      <div className="flex justify-between items-end">
+        <div className="text-5xl font-semibold text-gray-900 tracking-tight">{value}</div>
+        <Link to={linkTo} className="text-sm font-medium text-gray-700 hover:text-gray-900 flex items-center transition-colors">
+          View All <ArrowRight className="ml-1 h-4 w-4" />
+        </Link>
+      </div>
+    </div>
+  );
+}
 
 export function Dashboard() {
   const [stats, setStats] = useState<any>(null);
@@ -35,73 +55,52 @@ export function Dashboard() {
   );
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-      </div>
+    <div className="space-y-8 max-w-6xl mx-auto">
+      <h1 className="text-4xl font-bold tracking-tight text-gray-900">Dashboard</h1>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Usulan</CardTitle>
-            <Layers className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.total_usulan}</div>
-            <p className="text-xs text-muted-foreground">Semua usulan masuk</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Hibah</CardTitle>
-            <FileText className="h-4 w-4 text-blue-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.total_hibah}</div>
-            <p className="text-xs text-muted-foreground">Kategori Hibah</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Pokir</CardTitle>
-            <BarChart3 className="h-4 w-4 text-purple-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.total_pokir}</div>
-            <p className="text-xs text-muted-foreground">Kategori Pokir</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <h2 className="text-xl font-semibold mt-8 mb-4">Status Validasi</h2>
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card className="border-green-200 bg-green-50">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-green-800">Diterima</CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-700">{stats.diterima}</div>
-          </CardContent>
-        </Card>
-        <Card className="border-red-200 bg-red-50">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-red-800">Ditolak</CardTitle>
-            <XCircle className="h-4 w-4 text-red-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-700">{stats.ditolak}</div>
-          </CardContent>
-        </Card>
-        <Card className="border-gray-200 bg-gray-50">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-800">Dikembalikan</CardTitle>
-            <RefreshCcw className="h-4 w-4 text-gray-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-gray-700">{stats.dikembalikan}</div>
-          </CardContent>
-        </Card>
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <StatCard 
+          title="Total Usulan" 
+          value={stats.total_usulan} 
+          icon={Package} 
+          colorClass="bg-[#E2F7D8]" 
+          linkTo="/hibah" 
+        />
+        <StatCard 
+          title="Total Hibah" 
+          value={stats.total_hibah} 
+          icon={FileBox} 
+          colorClass="bg-[#D0F0FD]" 
+          linkTo="/hibah" 
+        />
+        <StatCard 
+          title="Total Pokir" 
+          value={stats.total_pokir} 
+          icon={Box} 
+          colorClass="bg-[#E0D4FC]" 
+          linkTo="/pokir" 
+        />
+        <StatCard 
+          title="Diterima" 
+          value={stats.diterima} 
+          icon={CheckCircle} 
+          colorClass="bg-[#FFD6D6]" 
+          linkTo="#" 
+        />
+        <StatCard 
+          title="Ditolak" 
+          value={stats.ditolak} 
+          icon={XCircle} 
+          colorClass="bg-[#D1D5FF]" 
+          linkTo="#" 
+        />
+        <StatCard 
+          title="Dikembalikan" 
+          value={stats.dikembalikan} 
+          icon={RefreshCcw} 
+          colorClass="bg-[#B9FBC0]" 
+          linkTo="#" 
+        />
       </div>
     </div>
   );
