@@ -7,6 +7,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { checkDuplicates, importUsulan } from '@/lib/api';
 import { toast } from 'sonner';
+import { Loader2 } from 'lucide-react';
 
 interface ImportModalProps {
   isOpen: boolean;
@@ -147,7 +148,13 @@ export function ImportModal({ isOpen, onClose, kategori, onSuccess }: ImportModa
                 disabled={loading}
               />
             </label>
-            {data.length > 0 && (
+            {loading && (
+              <div className="flex items-center text-sm text-gray-500">
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                Memproses data...
+              </div>
+            )}
+            {!loading && data.length > 0 && (
               <div className="flex gap-4 text-sm">
                 <span>Total: <strong>{data.length}</strong></span>
                 <span className="text-green-600">Valid: <strong>{validCount}</strong></span>
@@ -191,6 +198,7 @@ export function ImportModal({ isOpen, onClose, kategori, onSuccess }: ImportModa
         <DialogFooter className="mt-4">
           <Button variant="outline" onClick={onClose} disabled={loading}>Batal</Button>
           <Button onClick={handleImport} disabled={loading || validCount === 0}>
+            {loading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
             Import Data ({validCount})
           </Button>
         </DialogFooter>

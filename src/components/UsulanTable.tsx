@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { fetchUsulan, bulkDeleteUsulan, clearUsulan } from '@/lib/api';
 import { ValidationModal } from './ValidationModal';
-import { Search, ChevronLeft, ChevronRight, FileText, Trash2, AlertTriangle } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, FileText, Trash2, AlertTriangle, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -217,8 +217,11 @@ export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={26} className="text-center py-10 text-gray-500">
-                    Memuat data...
+                  <TableCell colSpan={26} className="text-center py-20 text-gray-500">
+                    <div className="flex flex-col items-center justify-center space-y-3">
+                      <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+                      <p>Memuat data...</p>
+                    </div>
                   </TableCell>
                 </TableRow>
               ) : data.length === 0 ? (

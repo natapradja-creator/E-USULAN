@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { fetchStats } from '@/lib/api';
-import { FileText, CheckCircle, XCircle, RefreshCcw, Layers, BarChart3 } from 'lucide-react';
+import { FileText, CheckCircle, XCircle, RefreshCcw, Layers, BarChart3, Loader2 } from 'lucide-react';
 
 export function Dashboard() {
   const [stats, setStats] = useState<any>(null);
@@ -10,7 +10,12 @@ export function Dashboard() {
     fetchStats().then(setStats).catch(console.error);
   }, []);
 
-  if (!stats) return <div className="p-8 text-center text-gray-500">Memuat dashboard...</div>;
+  if (!stats) return (
+    <div className="flex flex-col items-center justify-center h-[60vh] text-gray-500 space-y-4">
+      <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+      <p>Memuat dashboard...</p>
+    </div>
+  );
 
   return (
     <div className="space-y-6">
