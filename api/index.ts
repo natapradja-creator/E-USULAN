@@ -19,6 +19,11 @@ if (connectionString.includes('channel_binding=require')) {
                                      .replace('?channel_binding=require', '');
 }
 
+// Fix for pg v8.x SSL warning (Vercel Postgres uses sslmode=require)
+if (connectionString.includes('sslmode=require')) {
+  connectionString = connectionString.replace('sslmode=require', 'sslmode=verify-full');
+}
+
 const pool = new Pool({
   connectionString,
   ssl: connectionString.includes('neon.tech') || connectionString.includes('vercel-storage.com') || process.env.NODE_ENV === 'production' 
