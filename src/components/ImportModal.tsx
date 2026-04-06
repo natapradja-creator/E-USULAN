@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import * as XLSX from 'xlsx';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -20,6 +20,21 @@ export function ImportModal({ isOpen, onClose, kategori, onSuccess }: ImportModa
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Reset data when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setData([]);
+    }
+  }, [isOpen]);
+
+  const handleClose = () => {
+    setData([]);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+    onClose();
+  };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -78,10 +93,14 @@ export function ImportModal({ isOpen, onClose, kategori, onSuccess }: ImportModa
         const ids = mappedData.map(d => d.id_usulan);
         if (ids.length > 0) {
           const { existing } = await checkDuplicates(ids);
-          const finalData = mappedData.map(d => ({
-            ...d,
-            _status: existing.includes(d.id_usulan) ? 'DUPLIKAT' : 'VALID'
-          }));
+          const finalData = mappedData.map(d => {
+            const isDuplicate = existing.includes(d.id_usulan);
+            return {
+              ...d,
+              _status: isDuplicate ? 'DUPLIKAT' : 'VALID',
+              _selected: !isDuplicate // Select valid rows by default
+            };
+          });
           setData(finalData);
         } else {
           setData([]);
@@ -102,21 +121,33 @@ export function ImportModal({ isOpen, onClose, kategori, onSuccess }: ImportModa
     }
   };
 
+  const handleSelectAll = (checked: boolean) => {
+    setData(prev => prev.map(row => 
+      row._status === 'VALID' ? { ...row, _selected: checked } : row
+    ));
+  };
+
+  const handleSelectRow = (id: string, checked: boolean) => {
+    setData(prev => prev.map(row => 
+      row.id_usulan === id && row._status === 'VALID' ? { ...row, _selected: checked } : row
+    ));
+  };
+
   const handleImport = async () => {
-    const validData = data.filter(d => d._status === 'VALID');
-    if (validData.length === 0) {
-      toast.error('Tidak ada data valid untuk diimport');
+    const selectedData = data.filter(d => d._status === 'VALID' && d._selected);
+    if (selectedData.length === 0) {
+      toast.error('Tidak ada data yang dipilih untuk diimport');
       return;
     }
 
     setLoading(true);
     try {
-      // Remove _status before sending to API
-      const payload = validData.map(({ _status, ...rest }) => rest);
+      // Remove _status and _selected before sending to API
+      const payload = selectedData.map(({ _status, _selected, ...rest }) => rest);
       await importUsulan(payload);
-      toast.success(`Berhasil import ${validData.length} data`);
+      toast.success(`Berhasil import ${selectedData.length} data`);
       onSuccess();
-      onClose();
+      handleClose();
     } catch (error) {
       console.error(error);
       toast.error('Gagal import data');
@@ -126,10 +157,11 @@ export function ImportModal({ isOpen, onClose, kategori, onSuccess }: ImportModa
   };
 
   const validCount = data.filter(d => d._status === 'VALID').length;
+  const selectedCount = data.filter(d => d._status === 'VALID' && d._selected).length;
   const duplicateCount = data.filter(d => d._status === 'DUPLIKAT').length;
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
       <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>Import Data {kategori}</DialogTitle>
@@ -158,16 +190,26 @@ export function ImportModal({ isOpen, onClose, kategori, onSuccess }: ImportModa
               <div className="flex gap-4 text-sm">
                 <span>Total: <strong>{data.length}</strong></span>
                 <span className="text-green-600">Valid: <strong>{validCount}</strong></span>
+                <span className="text-blue-600">Dipilih: <strong>{selectedCount}</strong></span>
                 <span className="text-red-600">Duplikat: <strong>{duplicateCount}</strong></span>
               </div>
             )}
           </div>
 
           {data.length > 0 && (
-            <ScrollArea className="flex-1 border rounded-md">
+            <div className="flex-1 border rounded-md overflow-y-auto min-h-[300px] max-h-[60vh]">
               <Table>
-                <TableHeader>
+                <TableHeader className="sticky top-0 bg-white z-10 shadow-sm">
                   <TableRow>
+                    <TableHead className="w-[40px] text-center">
+                      <input 
+                        type="checkbox" 
+                        className="rounded border-gray-300"
+                        checked={validCount > 0 && selectedCount === validCount}
+                        onChange={(e) => handleSelectAll(e.target.checked)}
+                        disabled={validCount === 0}
+                      />
+                    </TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>ID Usulan</TableHead>
                     <TableHead>Pengusul</TableHead>
@@ -178,6 +220,15 @@ export function ImportModal({ isOpen, onClose, kategori, onSuccess }: ImportModa
                 <TableBody>
                   {data.map((row, i) => (
                     <TableRow key={i} className={row._status === 'DUPLIKAT' ? 'bg-red-50/50' : ''}>
+                      <TableCell className="text-center">
+                        <input 
+                          type="checkbox" 
+                          className="rounded border-gray-300"
+                          checked={row._selected || false}
+                          onChange={(e) => handleSelectRow(row.id_usulan, e.target.checked)}
+                          disabled={row._status !== 'VALID'}
+                        />
+                      </TableCell>
                       <TableCell>
                         <Badge variant={row._status === 'VALID' ? 'default' : 'destructive'} className={row._status === 'VALID' ? 'bg-green-500 hover:bg-green-600' : ''}>
                           {row._status}
@@ -191,15 +242,15 @@ export function ImportModal({ isOpen, onClose, kategori, onSuccess }: ImportModa
                   ))}
                 </TableBody>
               </Table>
-            </ScrollArea>
+            </div>
           )}
         </div>
 
         <DialogFooter className="mt-4">
-          <Button variant="outline" onClick={onClose} disabled={loading}>Batal</Button>
-          <Button onClick={handleImport} disabled={loading || validCount === 0}>
+          <Button variant="outline" onClick={handleClose} disabled={loading}>Batal</Button>
+          <Button onClick={handleImport} disabled={loading || selectedCount === 0}>
             {loading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-            Import Data ({validCount})
+            Import Data ({selectedCount})
           </Button>
         </DialogFooter>
       </DialogContent>

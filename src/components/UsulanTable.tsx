@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import * as XLSX from 'xlsx';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -7,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { fetchUsulan, bulkDeleteUsulan, clearUsulan } from '@/lib/api';
 import { ValidationModal } from './ValidationModal';
-import { Search, ChevronLeft, ChevronRight, FileText, Trash2, AlertTriangle, Loader2, CheckCircle, XCircle, AlertCircle, Clock } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, FileText, Trash2, AlertTriangle, Loader2, CheckCircle, XCircle, AlertCircle, Clock, Download } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -162,6 +163,70 @@ export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
     }
   };
 
+  const handleExport = async () => {
+    setLoading(true);
+    try {
+      // Fetch all data matching current filters
+      const response = await fetchUsulan({
+        kategori,
+        search,
+        status,
+        opd,
+        page: 1,
+        limit: 1000000 // Fetch all
+      });
+
+      if (!response.data || response.data.length === 0) {
+        toast.error('Tidak ada data untuk diexport');
+        return;
+      }
+
+      // Format data for Excel
+      const exportData = response.data.map((item: any, index: number) => ({
+        'No': index + 1,
+        'ID Usulan': item.id_usulan,
+        'Kategori': item.kategori,
+        'Tanggal Usul': item.tanggal_usul,
+        'Pengusul': item.pengusul,
+        'Usulan': item.usulan,
+        'Masalah': item.masalah,
+        'Alamat Lokasi': item.alamat_lokasi,
+        'Usulan Ke': item.usulan_ke,
+        'OPD Tujuan Awal': item.opd_tujuan_awal,
+        'OPD Tujuan Akhir': item.opd_tujuan_akhir,
+        'Status Existing': item.status_existing,
+        'Catatan': item.catatan,
+        'Rekomendasi Sekwan': item.rekomendasi_sekwan,
+        'Rekomendasi Mitra': item.rekomendasi_mitra,
+        'Rekomendasi SKPD': item.rekomendasi_skpd,
+        'Rekomendasi TAPD': item.rekomendasi_tapd,
+        'Volume': item.volume,
+        'Satuan': item.satuan,
+        'Anggaran': item.anggaran,
+        'Jenis Belanja': item.jenis_belanja,
+        'Sub Kegiatan': item.sub_kegiatan,
+        'Status Validasi': item.status_validasi,
+        'Catatan Validasi': item.catatan_validasi,
+        'Validator': item.validator,
+        'Tanggal Validasi': item.tanggal_validasi ? format(new Date(item.tanggal_validasi), 'dd/MM/yyyy HH:mm') : ''
+      }));
+
+      const ws = XLSX.utils.json_to_sheet(exportData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Data Usulan');
+      
+      const fileName = `Export_Usulan_${kategori}_${format(new Date(), 'yyyyMMdd_HHmmss')}.xlsx`;
+      XLSX.writeFile(wb, fileName);
+      
+      toast.success('Berhasil export data ke Excel');
+    } catch (error) {
+      console.error(error);
+      toast.error('Gagal export data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row gap-4 justify-between">
@@ -195,6 +260,10 @@ export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
               Hapus ({selectedIds.length})
             </Button>
           )}
+          <Button variant="outline" size="sm" onClick={handleExport} disabled={loading || total === 0} className="text-green-700 border-green-200 hover:bg-green-50">
+            <Download className="h-4 w-4 mr-2" />
+            Export Excel
+          </Button>
           <Button variant="outline" size="sm" onClick={() => setIsClearModalOpen(true)} disabled={loading || total === 0} className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700">
             <AlertTriangle className="h-4 w-4 mr-2" />
             Clear All Data

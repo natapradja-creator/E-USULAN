@@ -218,7 +218,7 @@ app.post('/api/usulan/import', async (req, res) => {
       const values = [
         usulan.id_usulan, usulan.tanggal_usul, usulan.pengusul, usulan.usulan, usulan.masalah, usulan.alamat_lokasi,
         usulan.usulan_ke, usulan.opd_tujuan_awal, usulan.opd_tujuan_akhir, usulan.status_existing, usulan.catatan,
-        usulan.rekomendasi_sekwan, usulan.rekomendasi_mitra, usulan.rekomendasi_skpd, rekomendasi_tapd,
+        usulan.rekomendasi_sekwan, usulan.rekomendasi_mitra, usulan.rekomendasi_skpd, usulan.rekomendasi_tapd,
         usulan.volume, usulan.satuan, usulan.anggaran, usulan.jenis_belanja, usulan.sub_kegiatan, usulan.kategori
       ];
       const result = await client.query(query, values);
