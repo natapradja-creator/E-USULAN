@@ -76,12 +76,12 @@ export function ValidationModal({ isOpen, onClose, usulan, onSuccess }: Validati
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>Validasi Usulan: {usulan.id_usulan}</DialogTitle>
         </DialogHeader>
         
-        <div className="grid gap-4 py-4">
+        <div className="grid gap-4 py-4 overflow-y-auto flex-1 pr-2">
           <div className="grid grid-cols-4 items-center gap-4">
             <Label className="text-right font-bold">Pengusul</Label>
             <div className="col-span-3">{usulan.pengusul}</div>
@@ -94,7 +94,7 @@ export function ValidationModal({ isOpen, onClose, usulan, onSuccess }: Validati
           </div>
           <div className="grid grid-cols-4 items-start gap-4">
             <Label className="text-right font-bold mt-1">Masalah</Label>
-            <div className="col-span-3 text-sm text-gray-700 bg-gray-50 p-3 rounded-md border">
+            <div className="col-span-3 text-sm text-gray-700 bg-gray-50 p-3 rounded-md border whitespace-pre-wrap">
               {usulan.masalah}
             </div>
           </div>
@@ -152,7 +152,7 @@ export function ValidationModal({ isOpen, onClose, usulan, onSuccess }: Validati
           </div>
         </div>
 
-        <DialogFooter className="flex gap-2 sm:justify-between">
+        <DialogFooter className="flex gap-2 sm:justify-between mt-4">
           <Button variant="outline" onClick={onClose} disabled={loading}>Batal</Button>
           <div className="flex gap-2">
             <Button 
