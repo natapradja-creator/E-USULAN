@@ -107,7 +107,7 @@ app.get('/api/stats', async (req, res) => {
 // Get Usulan List
 app.get('/api/usulan', async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
-  const { kategori, search, status, opd, page = 1, limit = 10 } = req.query;
+  const { kategori, search, status, opd, page = 1, limit = 10, sortBy = 'created_at', sortOrder = 'DESC' } = req.query;
   
   let query = "SELECT * FROM usulan WHERE 1=1";
   let countQueryStr = "SELECT COUNT(*) as count FROM usulan WHERE 1=1";
@@ -148,7 +148,12 @@ app.get('/api/usulan', async (req, res) => {
     paramIndex++;
   }
 
-  query += " ORDER BY created_at DESC";
+  // Validate sort parameters to prevent SQL injection
+  const allowedSortCols = ['created_at', 'tanggal_usul', 'pengusul', 'anggaran', 'status_validasi', 'id_usulan'];
+  const validSortBy = allowedSortCols.includes(String(sortBy)) ? String(sortBy) : 'created_at';
+  const validSortOrder = String(sortOrder).toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
+
+  query += ` ORDER BY ${validSortBy} ${validSortOrder}`;
 
   try {
     // Pagination

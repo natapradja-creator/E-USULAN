@@ -37,6 +37,8 @@ export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState(initialStatus);
   const [opd, setOpd] = useState('ALL');
+  const [sortBy, setSortBy] = useState('created_at');
+  const [sortOrder, setSortOrder] = useState('DESC');
 
   // Update URL when status changes
   const handleStatusChange = (newStatus: string) => {
@@ -74,7 +76,9 @@ export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
         status,
         opd,
         page,
-        limit: limit === -1 ? 1000000 : limit
+        limit: limit === -1 ? 1000000 : limit,
+        sortBy,
+        sortOrder
       });
       setData(res.data);
       setTotal(res.total);
@@ -91,7 +95,7 @@ export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
 
   useEffect(() => {
     loadData();
-  }, [kategori, page, limit, status, opd, refreshTrigger]);
+  }, [kategori, page, limit, status, opd, sortBy, sortOrder, refreshTrigger]);
 
   // Debounce search
   useEffect(() => {
@@ -105,7 +109,7 @@ export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'DITERIMA': return <Badge className="bg-green-100 text-green-800 border-green-200 hover:bg-green-200 flex items-center gap-1 w-fit"><CheckCircle className="w-3 h-3"/> Diterima</Badge>;
-      case 'DITOLAK': return <Badge className="bg-red-100 text-red-800 border-red-200 hover:bg-red-200 flex items-center gap-1 w-fit"><XCircle className="w-3 h-3"/> Ditolak</Badge>;
+      case 'DITOLAK': return <Badge className="bg-rose-900 text-white border-rose-950 hover:bg-rose-800 flex items-center gap-1 w-fit"><XCircle className="w-3 h-3"/> Ditolak</Badge>;
       case 'DIKEMBALIKAN': return <Badge className="bg-orange-100 text-orange-800 border-orange-200 hover:bg-orange-200 flex items-center gap-1 w-fit"><AlertCircle className="w-3 h-3"/> Dikembalikan</Badge>;
       default: return <Badge className="bg-gray-100 text-gray-800 border-gray-200 hover:bg-gray-200 flex items-center gap-1 w-fit"><Clock className="w-3 h-3"/> Draft</Badge>;
     }
@@ -114,7 +118,7 @@ export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
   const getRowClassName = (status: string) => {
     switch (status) {
       case 'DITERIMA': return "hover:bg-green-100 bg-green-50";
-      case 'DITOLAK': return "hover:bg-red-100 bg-red-50";
+      case 'DITOLAK': return "hover:bg-rose-100 bg-rose-50";
       case 'DIKEMBALIKAN': return "hover:bg-orange-100 bg-orange-50";
       default: return "hover:bg-gray-100 bg-white";
     }
@@ -173,7 +177,9 @@ export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
         status,
         opd,
         page: 1,
-        limit: 1000000 // Fetch all
+        limit: 1000000, // Fetch all
+        sortBy,
+        sortOrder
       });
 
       if (!response.data || response.data.length === 0) {
@@ -230,8 +236,8 @@ export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row gap-4 justify-between">
-        <div className="flex gap-2 flex-1">
-          <div className="relative flex-1 max-w-sm">
+        <div className="flex flex-wrap gap-2 flex-1">
+          <div className="relative flex-1 min-w-[200px] max-w-sm">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
             <Input
               placeholder="Cari di semua kolom..."
@@ -241,7 +247,7 @@ export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
             />
           </div>
           <Select value={status} onValueChange={handleStatusChange}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[150px]">
               <SelectValue placeholder="Semua Status" />
             </SelectTrigger>
             <SelectContent>
@@ -250,6 +256,27 @@ export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
               <SelectItem value="DITERIMA">Diterima</SelectItem>
               <SelectItem value="DITOLAK">Ditolak</SelectItem>
               <SelectItem value="DIKEMBALIKAN">Dikembalikan</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={sortBy} onValueChange={(v) => { setSortBy(v); setPage(1); }}>
+            <SelectTrigger className="w-[160px]">
+              <SelectValue placeholder="Urutkan Berdasarkan" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="created_at">Waktu Dibuat</SelectItem>
+              <SelectItem value="tanggal_usul">Tanggal Usul</SelectItem>
+              <SelectItem value="pengusul">Pengusul</SelectItem>
+              <SelectItem value="anggaran">Anggaran</SelectItem>
+              <SelectItem value="status_validasi">Status Validasi</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={sortOrder} onValueChange={(v) => { setSortOrder(v); setPage(1); }}>
+            <SelectTrigger className="w-[110px]">
+              <SelectValue placeholder="Urutan" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="DESC">Menurun</SelectItem>
+              <SelectItem value="ASC">Menaik</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -280,7 +307,7 @@ export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
           Keterangan Warna Baris:
         </span>
         <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-green-100 border border-green-300"></div> Diterima</div>
-        <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-red-100 border border-red-300"></div> Ditolak</div>
+        <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-rose-900 border border-rose-950"></div> Ditolak</div>
         <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-orange-100 border border-orange-300"></div> Dikembalikan</div>
         <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-white border border-gray-300"></div> Draft</div>
       </div>
