@@ -259,10 +259,19 @@ app.post('/api/usulan/:id/validate', async (req, res) => {
     }
   }
 
+  let newStatusExisting = null;
+  if (status === 'DITERIMA') {
+    newStatusExisting = 'Verifikasi TAPD';
+  } else if (status === 'DIKEMBALIKAN') {
+    newStatusExisting = 'Dikembalikan';
+  } else if (status === 'DITOLAK') {
+    newStatusExisting = 'Ditolak';
+  }
+
   try {
     const query = `
       UPDATE usulan 
-      SET status_validasi = $1, catatan_validasi = $2, rekomendasi_skpd = $3, tanggal_validasi = CURRENT_TIMESTAMP, validator = $4, anggaran = $5, volume = $6, satuan = $7
+      SET status_validasi = $1, catatan_validasi = $2, rekomendasi_skpd = $3, tanggal_validasi = CURRENT_TIMESTAMP, validator = $4, anggaran = $5, volume = $6, satuan = $7, status_existing = COALESCE($9, status_existing)
       WHERE id_usulan = $8
     `;
     
@@ -274,7 +283,8 @@ app.post('/api/usulan/:id/validate', async (req, res) => {
       anggaran || null, 
       volume || null, 
       satuan || null, 
-      id
+      id,
+      newStatusExisting
     ]);
     
     if (result.rowCount === 0) {
