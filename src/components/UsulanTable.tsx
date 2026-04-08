@@ -18,6 +18,52 @@ interface UsulanTableProps {
   refreshTrigger: number;
 }
 
+const ResizableHeader = ({ 
+  id, 
+  children, 
+  width,
+  onResize
+}: { 
+  id: string; 
+  children: React.ReactNode; 
+  width: number;
+  onResize: (id: string, width: number) => void;
+}) => {
+  const startResize = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const startX = e.pageX;
+    const startWidth = width;
+
+    const onMouseMove = (moveEvent: MouseEvent) => {
+      const newWidth = Math.max(100, startWidth + (moveEvent.pageX - startX));
+      onResize(id, newWidth);
+    };
+
+    const onMouseUp = () => {
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+    };
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  };
+
+  return (
+    <TableHead 
+      className="relative whitespace-nowrap group border-r border-gray-200 last:border-r-0"
+      style={{ width, minWidth: width, maxWidth: width }}
+    >
+      <div className="overflow-hidden text-ellipsis w-full pr-2">
+        {children}
+      </div>
+      <div
+        className="absolute right-0 top-0 h-full w-2 cursor-col-resize opacity-0 group-hover:opacity-100 bg-blue-400 z-10 transition-opacity"
+        onMouseDown={startResize}
+      />
+    </TableHead>
+  );
+};
+
 export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
   const [searchParams, setSearchParams] = useSearchParams();
   const initialStatus = searchParams.get('status') || 'ALL';
@@ -32,6 +78,44 @@ export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Column Widths
+  const [colWidths, setColWidths] = useState<Record<string, number>>({
+    id_usulan: 150,
+    tanggal_usul: 120,
+    pengusul: 150,
+    usulan: 300,
+    masalah: 300,
+    alamat_lokasi: 200,
+    usulan_ke: 100,
+    opd_tujuan_awal: 150,
+    opd_tujuan_akhir: 150,
+    status_existing: 150,
+    catatan: 200,
+    rekomendasi_sekwan: 150,
+    rekomendasi_mitra: 150,
+    rekomendasi_skpd: 150,
+    rekomendasi_tapd: 150,
+    volume: 100,
+    satuan: 100,
+    anggaran: 120,
+    jenis_belanja: 150,
+    sub_kegiatan: 150,
+    status_validasi: 150,
+    catatan_validasi: 200,
+    validator: 120,
+    tanggal_validasi: 150,
+  });
+
+  const handleResize = (id: string, width: number) => {
+    setColWidths(prev => ({ ...prev, [id]: width }));
+  };
+
+  const getColStyle = (id: string) => ({
+    width: colWidths[id],
+    minWidth: colWidths[id],
+    maxWidth: colWidths[id],
+  });
 
   // Filters
   const [search, setSearch] = useState('');
@@ -325,30 +409,30 @@ export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
                     onChange={handleSelectAll}
                   />
                 </TableHead>
-                <TableHead className="whitespace-nowrap">ID Usulan</TableHead>
-                <TableHead className="whitespace-nowrap">Tanggal Usul</TableHead>
-                <TableHead className="whitespace-nowrap">Pengusul</TableHead>
-                <TableHead className="whitespace-nowrap min-w-[200px]">Usulan</TableHead>
-                <TableHead className="whitespace-nowrap min-w-[200px]">Masalah</TableHead>
-                <TableHead className="whitespace-nowrap min-w-[150px]">Alamat Lokasi</TableHead>
-                <TableHead className="whitespace-nowrap">Usulan Ke</TableHead>
-                <TableHead className="whitespace-nowrap">OPD Tujuan Awal</TableHead>
-                <TableHead className="whitespace-nowrap">OPD Tujuan Akhir</TableHead>
-                <TableHead className="whitespace-nowrap">Status Existing</TableHead>
-                <TableHead className="whitespace-nowrap min-w-[150px]">Catatan</TableHead>
-                <TableHead className="whitespace-nowrap">Rekomendasi Sekwan</TableHead>
-                <TableHead className="whitespace-nowrap">Rekomendasi Mitra</TableHead>
-                <TableHead className="whitespace-nowrap">Rekomendasi SKPD</TableHead>
-                <TableHead className="whitespace-nowrap">Rekomendasi TAPD</TableHead>
-                <TableHead className="whitespace-nowrap">Volume</TableHead>
-                <TableHead className="whitespace-nowrap">Satuan</TableHead>
-                <TableHead className="whitespace-nowrap">Anggaran</TableHead>
-                <TableHead className="whitespace-nowrap">Jenis Belanja</TableHead>
-                <TableHead className="whitespace-nowrap">Sub Kegiatan</TableHead>
-                <TableHead className="whitespace-nowrap">Status Validasi</TableHead>
-                <TableHead className="whitespace-nowrap min-w-[150px]">Catatan Validasi</TableHead>
-                <TableHead className="whitespace-nowrap">Validator</TableHead>
-                <TableHead className="whitespace-nowrap">Tgl Validasi</TableHead>
+                <ResizableHeader id="id_usulan" width={colWidths.id_usulan} onResize={handleResize}>ID Usulan</ResizableHeader>
+                <ResizableHeader id="tanggal_usul" width={colWidths.tanggal_usul} onResize={handleResize}>Tanggal Usul</ResizableHeader>
+                <ResizableHeader id="pengusul" width={colWidths.pengusul} onResize={handleResize}>Pengusul</ResizableHeader>
+                <ResizableHeader id="usulan" width={colWidths.usulan} onResize={handleResize}>Usulan</ResizableHeader>
+                <ResizableHeader id="masalah" width={colWidths.masalah} onResize={handleResize}>Masalah</ResizableHeader>
+                <ResizableHeader id="alamat_lokasi" width={colWidths.alamat_lokasi} onResize={handleResize}>Alamat Lokasi</ResizableHeader>
+                <ResizableHeader id="usulan_ke" width={colWidths.usulan_ke} onResize={handleResize}>Usulan Ke</ResizableHeader>
+                <ResizableHeader id="opd_tujuan_awal" width={colWidths.opd_tujuan_awal} onResize={handleResize}>OPD Tujuan Awal</ResizableHeader>
+                <ResizableHeader id="opd_tujuan_akhir" width={colWidths.opd_tujuan_akhir} onResize={handleResize}>OPD Tujuan Akhir</ResizableHeader>
+                <ResizableHeader id="status_existing" width={colWidths.status_existing} onResize={handleResize}>Status Existing</ResizableHeader>
+                <ResizableHeader id="catatan" width={colWidths.catatan} onResize={handleResize}>Catatan</ResizableHeader>
+                <ResizableHeader id="rekomendasi_sekwan" width={colWidths.rekomendasi_sekwan} onResize={handleResize}>Rekomendasi Sekwan</ResizableHeader>
+                <ResizableHeader id="rekomendasi_mitra" width={colWidths.rekomendasi_mitra} onResize={handleResize}>Rekomendasi Mitra</ResizableHeader>
+                <ResizableHeader id="rekomendasi_skpd" width={colWidths.rekomendasi_skpd} onResize={handleResize}>Rekomendasi SKPD</ResizableHeader>
+                <ResizableHeader id="rekomendasi_tapd" width={colWidths.rekomendasi_tapd} onResize={handleResize}>Rekomendasi TAPD</ResizableHeader>
+                <ResizableHeader id="volume" width={colWidths.volume} onResize={handleResize}>Volume</ResizableHeader>
+                <ResizableHeader id="satuan" width={colWidths.satuan} onResize={handleResize}>Satuan</ResizableHeader>
+                <ResizableHeader id="anggaran" width={colWidths.anggaran} onResize={handleResize}>Anggaran</ResizableHeader>
+                <ResizableHeader id="jenis_belanja" width={colWidths.jenis_belanja} onResize={handleResize}>Jenis Belanja</ResizableHeader>
+                <ResizableHeader id="sub_kegiatan" width={colWidths.sub_kegiatan} onResize={handleResize}>Sub Kegiatan</ResizableHeader>
+                <ResizableHeader id="status_validasi" width={colWidths.status_validasi} onResize={handleResize}>Status Validasi</ResizableHeader>
+                <ResizableHeader id="catatan_validasi" width={colWidths.catatan_validasi} onResize={handleResize}>Catatan Validasi</ResizableHeader>
+                <ResizableHeader id="validator" width={colWidths.validator} onResize={handleResize}>Validator</ResizableHeader>
+                <ResizableHeader id="tanggal_validasi" width={colWidths.tanggal_validasi} onResize={handleResize}>Tgl Validasi</ResizableHeader>
                 <TableHead className="text-right whitespace-nowrap sticky right-0 bg-gray-50 shadow-[-4px_0_10px_rgba(0,0,0,0.05)]">Aksi</TableHead>
               </TableRow>
             </TableHeader>
@@ -391,30 +475,30 @@ export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
                         onChange={() => handleSelect(row.id_usulan)}
                       />
                     </TableCell>
-                    <TableCell className="font-mono text-xs whitespace-nowrap">{row.id_usulan}</TableCell>
-                    <TableCell className="whitespace-nowrap">{row.tanggal_usul}</TableCell>
-                    <TableCell className="font-medium whitespace-nowrap">{row.pengusul}</TableCell>
-                    <TableCell className="max-w-[300px] truncate" title={row.usulan}>{row.usulan}</TableCell>
-                    <TableCell className="max-w-[300px] truncate" title={row.masalah}>{row.masalah}</TableCell>
-                    <TableCell className="max-w-[200px] truncate" title={row.alamat_lokasi}>{row.alamat_lokasi}</TableCell>
-                    <TableCell className="whitespace-nowrap">{row.usulan_ke}</TableCell>
-                    <TableCell className="whitespace-nowrap">{row.opd_tujuan_awal}</TableCell>
-                    <TableCell className="text-sm text-gray-600 whitespace-nowrap">{row.opd_tujuan_akhir}</TableCell>
-                    <TableCell className="whitespace-nowrap">{row.status_existing}</TableCell>
-                    <TableCell className="max-w-[200px] truncate" title={row.catatan}>{row.catatan}</TableCell>
-                    <TableCell className="whitespace-nowrap">{row.rekomendasi_sekwan}</TableCell>
-                    <TableCell className="whitespace-nowrap">{row.rekomendasi_mitra}</TableCell>
-                    <TableCell className="whitespace-nowrap">{row.rekomendasi_skpd}</TableCell>
-                    <TableCell className="whitespace-nowrap">{row.rekomendasi_tapd}</TableCell>
-                    <TableCell className="whitespace-nowrap">{row.volume}</TableCell>
-                    <TableCell className="whitespace-nowrap">{row.satuan}</TableCell>
-                    <TableCell className="whitespace-nowrap">{row.anggaran}</TableCell>
-                    <TableCell className="whitespace-nowrap">{row.jenis_belanja}</TableCell>
-                    <TableCell className="whitespace-nowrap">{row.sub_kegiatan}</TableCell>
-                    <TableCell className="whitespace-nowrap">{getStatusBadge(row.status_validasi)}</TableCell>
-                    <TableCell className="max-w-[200px] truncate" title={row.catatan_validasi}>{row.catatan_validasi || '-'}</TableCell>
-                    <TableCell className="whitespace-nowrap">{row.validator || '-'}</TableCell>
-                    <TableCell className="whitespace-nowrap">{row.tanggal_validasi ? format(new Date(row.tanggal_validasi), 'dd MMM yyyy HH:mm') : '-'}</TableCell>
+                    <TableCell style={getColStyle('id_usulan')} className="font-mono text-xs truncate" title={row.id_usulan}>{row.id_usulan}</TableCell>
+                    <TableCell style={getColStyle('tanggal_usul')} className="truncate" title={row.tanggal_usul}>{row.tanggal_usul}</TableCell>
+                    <TableCell style={getColStyle('pengusul')} className="font-medium truncate" title={row.pengusul}>{row.pengusul}</TableCell>
+                    <TableCell style={getColStyle('usulan')} className="truncate" title={row.usulan}>{row.usulan}</TableCell>
+                    <TableCell style={getColStyle('masalah')} className="truncate" title={row.masalah}>{row.masalah}</TableCell>
+                    <TableCell style={getColStyle('alamat_lokasi')} className="truncate" title={row.alamat_lokasi}>{row.alamat_lokasi}</TableCell>
+                    <TableCell style={getColStyle('usulan_ke')} className="truncate" title={row.usulan_ke}>{row.usulan_ke}</TableCell>
+                    <TableCell style={getColStyle('opd_tujuan_awal')} className="truncate" title={row.opd_tujuan_awal}>{row.opd_tujuan_awal}</TableCell>
+                    <TableCell style={getColStyle('opd_tujuan_akhir')} className="text-sm text-gray-600 truncate" title={row.opd_tujuan_akhir}>{row.opd_tujuan_akhir}</TableCell>
+                    <TableCell style={getColStyle('status_existing')} className="truncate" title={row.status_existing}>{row.status_existing}</TableCell>
+                    <TableCell style={getColStyle('catatan')} className="truncate" title={row.catatan}>{row.catatan}</TableCell>
+                    <TableCell style={getColStyle('rekomendasi_sekwan')} className="truncate" title={row.rekomendasi_sekwan}>{row.rekomendasi_sekwan}</TableCell>
+                    <TableCell style={getColStyle('rekomendasi_mitra')} className="truncate" title={row.rekomendasi_mitra}>{row.rekomendasi_mitra}</TableCell>
+                    <TableCell style={getColStyle('rekomendasi_skpd')} className="truncate" title={row.rekomendasi_skpd}>{row.rekomendasi_skpd}</TableCell>
+                    <TableCell style={getColStyle('rekomendasi_tapd')} className="truncate" title={row.rekomendasi_tapd}>{row.rekomendasi_tapd}</TableCell>
+                    <TableCell style={getColStyle('volume')} className="truncate" title={row.volume}>{row.volume}</TableCell>
+                    <TableCell style={getColStyle('satuan')} className="truncate" title={row.satuan}>{row.satuan}</TableCell>
+                    <TableCell style={getColStyle('anggaran')} className="truncate" title={row.anggaran}>{row.anggaran}</TableCell>
+                    <TableCell style={getColStyle('jenis_belanja')} className="truncate" title={row.jenis_belanja}>{row.jenis_belanja}</TableCell>
+                    <TableCell style={getColStyle('sub_kegiatan')} className="truncate" title={row.sub_kegiatan}>{row.sub_kegiatan}</TableCell>
+                    <TableCell style={getColStyle('status_validasi')} className="truncate">{getStatusBadge(row.status_validasi)}</TableCell>
+                    <TableCell style={getColStyle('catatan_validasi')} className="truncate" title={row.catatan_validasi}>{row.catatan_validasi || '-'}</TableCell>
+                    <TableCell style={getColStyle('validator')} className="truncate" title={row.validator}>{row.validator || '-'}</TableCell>
+                    <TableCell style={getColStyle('tanggal_validasi')} className="truncate" title={row.tanggal_validasi ? format(new Date(row.tanggal_validasi), 'dd MMM yyyy HH:mm') : '-'}>{row.tanggal_validasi ? format(new Date(row.tanggal_validasi), 'dd MMM yyyy HH:mm') : '-'}</TableCell>
                     <TableCell className="text-right whitespace-nowrap sticky right-0 bg-white shadow-[-4px_0_10px_rgba(0,0,0,0.05)]">
                       <Button 
                         variant="ghost" 
