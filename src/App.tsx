@@ -89,6 +89,9 @@ function Layout({ children }: { children: React.ReactNode }) {
         <main className="flex-1 p-8 overflow-auto">
           {children}
         </main>
+        <footer className="py-4 text-center text-xs text-gray-400 border-t border-gray-100">
+          created by Mukki - Natapradja Project &copy; 2026
+        </footer>
       </div>
       <Toaster position="top-right" richColors />
     </div>

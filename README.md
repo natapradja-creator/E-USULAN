@@ -12,6 +12,10 @@ Aplikasi web full-stack untuk mengelola, memvalidasi, dan melacak data usulan (P
     *   Pewajiban pengisian **Anggaran**, **Volume**, dan **Satuan** untuk usulan yang diterima.
     *   Pencatatan catatan/rekomendasi SKPD secara detail.
 *   **Pencarian Cerdas**: Fitur pencarian yang mencakup seluruh kolom data (ID, Pengusul, Isi Usulan, OPD Tujuan, dll).
+*   **Pengurutan Data (Sort By)**: Mengurutkan data berdasarkan Waktu Dibuat, Tanggal Usul, Pengusul, Anggaran, atau Status Validasi secara menaik (ASC) atau menurun (DESC).
+*   **Kolom Tabel Fleksibel (Resizable Columns)**: Lebar kolom tabel dapat diatur secara manual dengan menarik batas kolom (drag-to-resize) agar isi teks terlihat lebih jelas.
+*   **Hapus Massal Aman**: Fitur hapus banyak data sekaligus dengan konfirmasi modal untuk mencegah penghapusan tidak sengaja.
+*   **Animasi Loading Modern**: Menggunakan animasi *Circular Progress* yang elegan saat memuat data.
 
 ## 💻 Tech Stack
 
@@ -24,7 +28,7 @@ Aplikasi web full-stack untuk mengelola, memvalidasi, dan melacak data usulan (P
 
 **Backend & Database:**
 *   [Express.js](https://expressjs.com/)
-*   [SQLite3](https://github.com/WiseLibs/better-sqlite3) (via `better-sqlite3`)
+*   [PostgreSQL](https://www.postgresql.org/) (via `pg`)
 *   [esbuild](https://esbuild.github.io/) (untuk kompilasi server production)
 
 ---
@@ -37,9 +41,12 @@ Halaman utama menampilkan ringkasan data. Anda dapat melihat berapa banyak usula
 ### 2. Mengelola Usulan
 Buka menu **Data Usulan** untuk melihat daftar lengkap.
 *   **Pencarian**: Gunakan kotak pencarian di bagian atas tabel untuk mencari kata kunci apa saja (nama pengusul, ID, OPD, dll).
-*   **Validasi**: Klik tombol **Validasi** pada baris usulan yang diinginkan.
+*   **Pengurutan**: Gunakan dropdown "Urutkan Berdasarkan" dan "Urutan" untuk menyortir data.
+*   **Ubah Lebar Kolom**: Arahkan kursor ke batas kanan judul kolom hingga muncul ikon panah kiri-kanan, lalu klik dan geser untuk menyesuaikan lebar kolom.
+*   **Validasi**: Klik tombol **Detail & Validasi** pada baris usulan yang diinginkan.
     *   Jika memilih **Terima**, Anda *wajib* mengisi nominal Anggaran, Volume, dan Satuan.
     *   Jika memilih **Tolak** atau **Kembalikan**, Anda hanya diwajibkan mengisi Catatan/Rekomendasi (minimal 10 karakter).
+*   **Hapus Data**: Centang satu atau beberapa data, lalu klik tombol **Hapus**. Sebuah jendela konfirmasi akan muncul sebelum data benar-benar dihapus.
 
 ---
 
@@ -94,8 +101,8 @@ npm start
 │   ├── pages/         # Komponen Halaman (Dashboard, UsulanPage)
 │   ├── App.tsx        # Entry point aplikasi React
 │   └── main.tsx       # Setup React DOM
-├── server.ts          # Entry point backend Express.js & konfigurasi SQLite
-├── usulan.db          # File database SQLite (terbuat otomatis saat server berjalan)
+├── api/
+│   └── index.ts       # Entry point backend Express.js & konfigurasi PostgreSQL
 ├── package.json       # Konfigurasi dependensi dan script NPM
 └── vite.config.ts     # Konfigurasi Vite
 ```
@@ -129,3 +136,9 @@ Selama proses *deployment* aplikasi ini ke Vercel dengan database PostgreSQL dar
 ### 4. Vercel Routing (`vercel.json`)
 *   **Masalah:** Vercel tidak tahu secara otomatis mana rute yang harus diarahkan ke backend Express dan mana yang diarahkan ke frontend React (SPA).
 *   **Solusi:** Wajib membuat file `vercel.json` yang mendefinisikan *rewrites*. Semua *request* yang berawalan `/api/(.*)` diarahkan ke file backend (`api/index.ts`), sedangkan *request* lainnya diarahkan ke `/index.html` agar ditangani oleh React Router.
+
+---
+
+<p align="center">
+  <i>created by Mukki - Natapradja Project &copy; 2026</i>
+</p>
