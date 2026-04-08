@@ -23,6 +23,8 @@ function StatCard({ title, value, icon: Icon, colorClass, linkTo }: { title: str
   );
 }
 
+import { CircularProgress } from '@/components/ui/circular-progress';
+
 export function Dashboard() {
   const [stats, setStats] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
@@ -49,8 +51,8 @@ export function Dashboard() {
 
   if (!stats) return (
     <div className="flex flex-col items-center justify-center h-[60vh] text-gray-500 space-y-4">
-      <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-      <p>Memuat dashboard...</p>
+      <CircularProgress size={48} strokeWidth={4} color="text-blue-600" />
+      <p className="text-sm font-medium animate-pulse">Memuat dashboard...</p>
     </div>
   );
 

@@ -13,6 +13,8 @@ import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 
+import { CircularProgress } from '@/components/ui/circular-progress';
+
 interface UsulanTableProps {
   kategori: 'HIBAH' | 'POKIR' | 'ALL';
   refreshTrigger: number;
@@ -442,9 +444,9 @@ export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
               {loading ? (
                 <TableRow>
                   <TableCell colSpan={26} className="text-center py-20 text-gray-500">
-                    <div className="flex flex-col items-center justify-center space-y-3">
-                      <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-                      <p>Memuat data...</p>
+                    <div className="flex flex-col items-center justify-center space-y-4">
+                      <CircularProgress size={48} strokeWidth={4} color="text-blue-600" />
+                      <p className="text-sm font-medium animate-pulse">Memuat data...</p>
                     </div>
                   </TableCell>
                 </TableRow>
