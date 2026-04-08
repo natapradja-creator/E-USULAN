@@ -146,6 +146,7 @@ export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
   // Selection
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isClearModalOpen, setIsClearModalOpen] = useState(false);
+  const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false);
 
   // Modal
   const [selectedUsulan, setSelectedUsulan] = useState<any>(null);
@@ -229,6 +230,7 @@ export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
     try {
       await bulkDeleteUsulan(selectedIds);
       toast.success(`Berhasil menghapus ${selectedIds.length} data`);
+      setIsBulkDeleteModalOpen(false);
       loadData();
     } catch (error) {
       toast.error('Gagal menghapus data');
@@ -366,7 +368,7 @@ export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
         </div>
         <div className="flex items-center gap-2">
           {selectedIds.length > 0 && (
-            <Button variant="destructive" size="sm" onClick={handleBulkDelete} disabled={loading}>
+            <Button variant="destructive" size="sm" onClick={() => setIsBulkDeleteModalOpen(true)} disabled={loading}>
               <Trash2 className="h-4 w-4 mr-2" />
               Hapus ({selectedIds.length})
             </Button>
@@ -582,6 +584,25 @@ export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
             </Button>
             <Button variant="destructive" onClick={handleClearAll} disabled={loading}>
               Ya, Hapus Semua
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isBulkDeleteModalOpen} onOpenChange={setIsBulkDeleteModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Hapus {selectedIds.length} Data Terpilih?</DialogTitle>
+            <DialogDescription>
+              Tindakan ini tidak dapat dibatalkan. Ini akan menghapus secara permanen {selectedIds.length} data usulan yang Anda pilih dari database.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-4">
+            <Button variant="outline" onClick={() => setIsBulkDeleteModalOpen(false)} disabled={loading}>
+              Batal
+            </Button>
+            <Button variant="destructive" onClick={handleBulkDelete} disabled={loading}>
+              Ya, Hapus Data
             </Button>
           </DialogFooter>
         </DialogContent>
