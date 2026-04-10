@@ -89,6 +89,7 @@ export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
     usulan: 300,
     masalah: 300,
     alamat_lokasi: 200,
+    kecamatan: 150,
     usulan_ke: 100,
     opd_tujuan_awal: 150,
     opd_tujuan_akhir: 150,
@@ -419,6 +420,7 @@ export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
                 <ResizableHeader id="usulan" width={colWidths.usulan} onResize={handleResize}>Usulan</ResizableHeader>
                 <ResizableHeader id="masalah" width={colWidths.masalah} onResize={handleResize}>Masalah</ResizableHeader>
                 <ResizableHeader id="alamat_lokasi" width={colWidths.alamat_lokasi} onResize={handleResize}>Alamat Lokasi</ResizableHeader>
+                <ResizableHeader id="kecamatan" width={colWidths.kecamatan} onResize={handleResize}>Kecamatan</ResizableHeader>
                 <ResizableHeader id="usulan_ke" width={colWidths.usulan_ke} onResize={handleResize}>Usulan Ke</ResizableHeader>
                 <ResizableHeader id="opd_tujuan_awal" width={colWidths.opd_tujuan_awal} onResize={handleResize}>OPD Tujuan Awal</ResizableHeader>
                 <ResizableHeader id="opd_tujuan_akhir" width={colWidths.opd_tujuan_akhir} onResize={handleResize}>OPD Tujuan Akhir</ResizableHeader>
@@ -485,6 +487,7 @@ export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
                     <TableCell style={getColStyle('usulan')} className="truncate" title={row.usulan}>{row.usulan}</TableCell>
                     <TableCell style={getColStyle('masalah')} className="truncate" title={row.masalah}>{row.masalah}</TableCell>
                     <TableCell style={getColStyle('alamat_lokasi')} className="truncate" title={row.alamat_lokasi}>{row.alamat_lokasi}</TableCell>
+                    <TableCell style={getColStyle('kecamatan')} className="truncate" title={row.kecamatan}>{row.kecamatan}</TableCell>
                     <TableCell style={getColStyle('usulan_ke')} className="truncate" title={row.usulan_ke}>{row.usulan_ke}</TableCell>
                     <TableCell style={getColStyle('opd_tujuan_awal')} className="truncate" title={row.opd_tujuan_awal}>{row.opd_tujuan_awal}</TableCell>
                     <TableCell style={getColStyle('opd_tujuan_akhir')} className="text-sm text-gray-600 truncate" title={row.opd_tujuan_akhir}>{row.opd_tujuan_akhir}</TableCell>

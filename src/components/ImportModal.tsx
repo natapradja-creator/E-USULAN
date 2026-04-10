@@ -70,6 +70,7 @@ export function ImportModal({ isOpen, onClose, kategori, onSuccess }: ImportModa
             usulan: getVal(row, ['usulan', 'namausulan', 'judul', 'kegiatan']),
             masalah: getVal(row, ['masalah', 'latarbelakang', 'deskripsi', 'uraian']),
             alamat_lokasi: getVal(row, ['alamatlokasi', 'alamat', 'lokasi', 'tempat']),
+            kecamatan: getVal(row, ['kecamatan', 'kec']),
             usulan_ke: getVal(row, ['usulanke', 'ke']),
             opd_tujuan_awal: getVal(row, ['opdtujuanawal', 'opdawal', 'tujuanawal']),
             opd_tujuan_akhir: getVal(row, ['opdtujuanakhir', 'opdakhir', 'opd', 'tujuan']),
@@ -246,12 +247,45 @@ export function ImportModal({ isOpen, onClose, kategori, onSuccess }: ImportModa
           )}
         </div>
 
-        <DialogFooter className="mt-4">
-          <Button variant="outline" onClick={handleClose} disabled={loading}>Batal</Button>
-          <Button onClick={handleImport} disabled={loading || selectedCount === 0}>
-            {loading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-            Import Data ({selectedCount})
-          </Button>
+        <DialogFooter className="mt-4 flex justify-between items-center">
+          <div className="flex-1">
+            {data.length > 0 && duplicateCount > 0 && (
+              <Button 
+                variant="outline" 
+                className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                onClick={async () => {
+                  const duplicatesToUpdate = data.filter(d => d._status === 'DUPLIKAT' && d.kecamatan);
+                  if (duplicatesToUpdate.length === 0) {
+                    toast.error('Tidak ada data duplikat yang memiliki kolom kecamatan untuk diupdate');
+                    return;
+                  }
+                  
+                  setLoading(true);
+                  try {
+                    const { updateKecamatanBulk } = await import('@/lib/api');
+                    const res = await updateKecamatanBulk(duplicatesToUpdate);
+                    toast.success(`Berhasil mengupdate kecamatan untuk ${res.updated} data`);
+                    onSuccess();
+                    handleClose();
+                  } catch (e) {
+                    toast.error('Gagal mengupdate kecamatan');
+                  } finally {
+                    setLoading(false);
+                  }
+                }}
+                disabled={loading}
+              >
+                Update Kecamatan Saja ({duplicateCount} Duplikat)
+              </Button>
+            )}
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={handleClose} disabled={loading}>Batal</Button>
+            <Button onClick={handleImport} disabled={loading || selectedCount === 0}>
+              {loading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+              Import Data Baru ({selectedCount})
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

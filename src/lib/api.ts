@@ -75,6 +75,22 @@ export async function importUsulan(data: any[]) {
   }
 }
 
+export async function updateKecamatanBulk(data: any[]) {
+  const res = await fetch(`${API_URL}/usulan/update-kecamatan`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ data }),
+  });
+  if (!res.ok) throw new Error('Failed to update kecamatan');
+  const text = await res.text();
+  try {
+    return JSON.parse(text);
+  } catch (e) {
+    console.error("API returned non-JSON response:", text);
+    throw new Error('API returned non-JSON response');
+  }
+}
+
 export async function validateUsulan(id: string, payload: { status: string; catatan: string; validator: string; anggaran?: string; volume?: string; satuan?: string }) {
   const res = await fetch(`${API_URL}/usulan/${id}/validate`, {
     method: 'POST',

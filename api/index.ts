@@ -44,6 +44,7 @@ app.get('/api/init-db', async (req, res) => {
         usulan TEXT,
         masalah TEXT,
         alamat_lokasi TEXT,
+        kecamatan TEXT,
         usulan_ke TEXT,
         opd_tujuan_awal TEXT,
         opd_tujuan_akhir TEXT,
@@ -66,6 +67,17 @@ app.get('/api/init-db', async (req, res) => {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
+    // Add kecamatan column if it doesn't exist (for existing databases)
+    try {
+      await pool.query(`ALTER TABLE usulan ADD COLUMN kecamatan TEXT`);
+    } catch (e: any) {
+      // Ignore error if column already exists
+      if (e.code !== '42701') { // 42701 is duplicate_column error code in postgres
+        console.log("Column kecamatan might already exist or another error occurred:", e.message);
+      }
+    }
+
     res.json({ status: 'ok', message: 'Database initialized successfully' });
   } catch (error: any) {
     console.error('Database initialization error:', error);
@@ -83,6 +95,13 @@ app.get('/api/health', (req, res) => {
 app.get('/api/stats', async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
   try {
+    // Ensure kecamatan column exists
+    try {
+      await pool.query(`ALTER TABLE usulan ADD COLUMN kecamatan TEXT`);
+    } catch (e: any) {
+      // Ignore error if column already exists
+    }
+
     const total_usulan = await pool.query("SELECT COUNT(*) as count FROM usulan");
     const total_hibah = await pool.query("SELECT COUNT(*) as count FROM usulan WHERE kategori = 'HIBAH'");
     const total_pokir = await pool.query("SELECT COUNT(*) as count FROM usulan WHERE kategori = 'POKIR'");
@@ -210,18 +229,18 @@ app.post('/api/usulan/import', async (req, res) => {
     
     const query = `
       INSERT INTO usulan (
-        id_usulan, tanggal_usul, pengusul, usulan, masalah, alamat_lokasi,
+        id_usulan, tanggal_usul, pengusul, usulan, masalah, alamat_lokasi, kecamatan,
         usulan_ke, opd_tujuan_awal, opd_tujuan_akhir, status_existing, catatan,
         rekomendasi_sekwan, rekomendasi_mitra, rekomendasi_skpd, rekomendasi_tapd,
         volume, satuan, anggaran, jenis_belanja, sub_kegiatan, kategori, status_validasi
       ) VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, 'DRAFT'
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, 'DRAFT'
       ) ON CONFLICT (id_usulan) DO NOTHING
     `;
 
     for (const usulan of data) {
       const values = [
-        usulan.id_usulan, usulan.tanggal_usul, usulan.pengusul, usulan.usulan, usulan.masalah, usulan.alamat_lokasi,
+        usulan.id_usulan, usulan.tanggal_usul, usulan.pengusul, usulan.usulan, usulan.masalah, usulan.alamat_lokasi, usulan.kecamatan,
         usulan.usulan_ke, usulan.opd_tujuan_awal, usulan.opd_tujuan_akhir, usulan.status_existing, usulan.catatan,
         usulan.rekomendasi_sekwan, usulan.rekomendasi_mitra, usulan.rekomendasi_skpd, usulan.rekomendasi_tapd,
         usulan.volume, usulan.satuan, usulan.anggaran, usulan.jenis_belanja, usulan.sub_kegiatan, usulan.kategori
@@ -238,6 +257,42 @@ app.post('/api/usulan/import', async (req, res) => {
     await client.query('ROLLBACK');
     console.error(error);
     res.status(500).json({ error: 'Failed to import data' });
+  } finally {
+    client.release();
+  }
+});
+
+// Update Kecamatan Bulk
+app.post('/api/usulan/update-kecamatan', async (req, res) => {
+  const { data } = req.body;
+  if (!data || !Array.isArray(data)) {
+    return res.status(400).json({ error: 'Invalid input' });
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    let updated = 0;
+    
+    const query = `
+      UPDATE usulan SET kecamatan = $1 WHERE id_usulan = $2
+    `;
+
+    for (const item of data) {
+      if (item.id_usulan && item.kecamatan) {
+        const result = await client.query(query, [item.kecamatan, item.id_usulan]);
+        if (result.rowCount && result.rowCount > 0) {
+          updated++;
+        }
+      }
+    }
+    
+    await client.query('COMMIT');
+    res.json({ success: true, updated });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error(error);
+    res.status(500).json({ error: 'Failed to update kecamatan' });
   } finally {
     client.release();
   }

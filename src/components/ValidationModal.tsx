@@ -98,6 +98,18 @@ export function ValidationModal({ isOpen, onClose, usulan, onSuccess }: Validati
               {usulan.masalah}
             </div>
           </div>
+          <div className="grid grid-cols-4 items-start gap-4">
+            <Label className="text-right font-bold mt-1">Alamat Lokasi</Label>
+            <div className="col-span-3 text-sm text-gray-700 bg-gray-50 p-3 rounded-md border whitespace-pre-wrap">
+              {usulan.alamat_lokasi || '-'}
+            </div>
+          </div>
+          <div className="grid grid-cols-4 items-start gap-4">
+            <Label className="text-right font-bold mt-1">Kecamatan</Label>
+            <div className="col-span-3 text-sm text-gray-700 bg-gray-50 p-3 rounded-md border">
+              {usulan.kecamatan || '-'}
+            </div>
+          </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label className="text-right font-bold">OPD Tujuan</Label>
             <div className="col-span-3">{usulan.opd_tujuan_akhir}</div>
