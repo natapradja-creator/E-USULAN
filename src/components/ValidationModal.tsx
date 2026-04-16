@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { validateUsulan } from '@/lib/api';
 import { toast } from 'sonner';
 
@@ -19,6 +20,7 @@ export function ValidationModal({ isOpen, onClose, usulan, onSuccess }: Validati
   const [anggaran, setAnggaran] = useState('');
   const [volume, setVolume] = useState('');
   const [satuan, setSatuan] = useState('');
+  const [kategori, setKategori] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -27,6 +29,7 @@ export function ValidationModal({ isOpen, onClose, usulan, onSuccess }: Validati
       setAnggaran(usulan.anggaran || '');
       setVolume(usulan.volume || '');
       setSatuan(usulan.satuan || '');
+      setKategori(usulan.kategori || '');
     }
   }, [usulan]);
 
@@ -59,7 +62,8 @@ export function ValidationModal({ isOpen, onClose, usulan, onSuccess }: Validati
         validator: 'Admin', // In a real app, get from auth context
         anggaran,
         volume,
-        satuan
+        satuan,
+        kategori
       });
       toast.success(`Usulan berhasil ${status.toLowerCase()}`);
       onSuccess();
@@ -114,6 +118,24 @@ export function ValidationModal({ isOpen, onClose, usulan, onSuccess }: Validati
             <Label className="text-right font-bold">OPD Tujuan</Label>
             <div className="col-span-3">{usulan.opd_tujuan_akhir}</div>
           </div>
+          
+          {usulan.kategori === 'HIBAH' && (
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label className="text-right font-bold">Kategori <span className="text-red-500">*</span></Label>
+              <div className="col-span-3">
+                <Select value={kategori} onValueChange={setKategori}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Pilih Kategori" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="HIBAH">Hibah</SelectItem>
+                    <SelectItem value="Musrembang">Musrembang</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-4 items-center gap-4">
             <Label className="text-right font-bold">Volume <span className="text-red-500">*</span></Label>
             <div className="col-span-3">

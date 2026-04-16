@@ -91,7 +91,7 @@ export async function updateKecamatanBulk(data: any[]) {
   }
 }
 
-export async function validateUsulan(id: string, payload: { status: string; catatan: string; validator: string; anggaran?: string; volume?: string; satuan?: string }) {
+export async function validateUsulan(id: string, payload: { status: string; catatan: string; validator: string; anggaran?: string; volume?: string; satuan?: string; kategori?: string }) {
   const res = await fetch(`${API_URL}/usulan/${id}/validate`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

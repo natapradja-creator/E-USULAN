@@ -16,7 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { CircularProgress } from '@/components/ui/circular-progress';
 
 interface UsulanTableProps {
-  kategori: 'HIBAH' | 'POKIR' | 'ALL';
+  kategori: 'HIBAH' | 'POKIR' | 'ALL' | 'Musrembang';
   refreshTrigger: number;
 }
 

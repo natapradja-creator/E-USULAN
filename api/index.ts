@@ -301,7 +301,7 @@ app.post('/api/usulan/update-kecamatan', async (req, res) => {
 // Validate Usulan
 app.post('/api/usulan/:id/validate', async (req, res) => {
   const { id } = req.params;
-  const { status, catatan, validator, anggaran, volume, satuan } = req.body;
+  const { status, catatan, validator, anggaran, volume, satuan, kategori } = req.body;
 
   if (!status || !catatan || catatan.length < 10) {
     return res.status(400).json({ error: 'Status and catatan (min 10 chars) are required' });
@@ -331,7 +331,7 @@ app.post('/api/usulan/:id/validate', async (req, res) => {
   try {
     const query = `
       UPDATE usulan 
-      SET status_validasi = $1, catatan_validasi = $2, rekomendasi_skpd = $3, tanggal_validasi = CURRENT_TIMESTAMP, validator = $4, anggaran = $5, volume = $6, satuan = $7, status_existing = COALESCE($9, status_existing)
+      SET status_validasi = $1, catatan_validasi = $2, rekomendasi_skpd = $3, tanggal_validasi = CURRENT_TIMESTAMP, validator = $4, anggaran = $5, volume = $6, satuan = $7, status_existing = COALESCE($9, status_existing), kategori = COALESCE($10, kategori)
       WHERE id_usulan = $8
     `;
     
@@ -344,7 +344,8 @@ app.post('/api/usulan/:id/validate', async (req, res) => {
       volume || null, 
       satuan || null, 
       id,
-      newStatusExisting
+      newStatusExisting,
+      kategori || null
     ]);
     
     if (result.rowCount === 0) {

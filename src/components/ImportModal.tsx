@@ -12,7 +12,7 @@ import { Loader2 } from 'lucide-react';
 interface ImportModalProps {
   isOpen: boolean;
   onClose: () => void;
-  kategori: 'HIBAH' | 'POKIR';
+  kategori: 'HIBAH' | 'POKIR' | 'Musrembang';
   onSuccess: () => void;
 }
 

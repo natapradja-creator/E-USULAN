@@ -5,7 +5,7 @@ import { ImportModal } from '@/components/ImportModal';
 import { Upload, FileText } from 'lucide-react';
 
 interface UsulanPageProps {
-  kategori: 'HIBAH' | 'POKIR' | 'ALL';
+  kategori: 'HIBAH' | 'POKIR' | 'ALL' | 'Musrembang';
 }
 
 export function UsulanPage({ kategori }: UsulanPageProps) {
@@ -46,7 +46,7 @@ export function UsulanPage({ kategori }: UsulanPageProps) {
         <ImportModal
           isOpen={isImportOpen}
           onClose={() => setIsImportOpen(false)}
-          kategori={kategori as 'HIBAH' | 'POKIR'}
+          kategori={kategori as 'HIBAH' | 'POKIR' | 'Musrembang'}
           onSuccess={handleImportSuccess}
         />
       )}

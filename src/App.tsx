@@ -13,6 +13,7 @@ function Sidebar({ isOpen, toggleSidebar }: { isOpen: boolean, toggleSidebar: ()
     { name: 'Dashboard', path: '/', icon: LayoutDashboard },
     { name: 'Semua Usulan', path: '/usulan', icon: Package },
     { name: 'Hibah', path: '/hibah', icon: FileText },
+    { name: 'Musrembang', path: '/musrembang', icon: Box },
     { name: 'Pokir', path: '/pokir', icon: Layers },
   ];
 
@@ -106,6 +107,7 @@ export default function App() {
           <Route path="/" element={<Dashboard />} />
           <Route path="/usulan" element={<UsulanPage kategori="ALL" />} />
           <Route path="/hibah" element={<UsulanPage kategori="HIBAH" />} />
+          <Route path="/musrembang" element={<UsulanPage kategori="Musrembang" />} />
           <Route path="/pokir" element={<UsulanPage kategori="POKIR" />} />
         </Routes>
       </Layout>
