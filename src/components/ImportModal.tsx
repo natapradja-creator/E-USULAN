@@ -163,7 +163,7 @@ export function ImportModal({ isOpen, onClose, kategori, onSuccess }: ImportModa
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
+      <DialogContent className="max-w-[95vw] sm:max-w-[90vw] w-full max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>Import Data {kategori}</DialogTitle>
         </DialogHeader>
@@ -247,12 +247,12 @@ export function ImportModal({ isOpen, onClose, kategori, onSuccess }: ImportModa
           )}
         </div>
 
-        <DialogFooter className="mt-4 flex justify-between items-center">
-          <div className="flex-1">
+        <DialogFooter className="mt-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+          <div className="flex-1 w-full sm:w-auto">
             {data.length > 0 && duplicateCount > 0 && (
               <Button 
                 variant="outline" 
-                className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                className="text-blue-600 border-blue-200 hover:bg-blue-50 w-full sm:w-auto"
                 onClick={async () => {
                   const duplicatesToUpdate = data.filter(d => d._status === 'DUPLIKAT' && d.kecamatan);
                   if (duplicatesToUpdate.length === 0) {
@@ -279,7 +279,7 @@ export function ImportModal({ isOpen, onClose, kategori, onSuccess }: ImportModa
               </Button>
             )}
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 w-full sm:w-auto justify-end">
             <Button variant="outline" onClick={handleClose} disabled={loading}>Batal</Button>
             <Button onClick={handleImport} disabled={loading || selectedCount === 0}>
               {loading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
