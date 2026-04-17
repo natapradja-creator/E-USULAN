@@ -23,6 +23,42 @@ function StatCard({ title, value, icon: Icon, colorClass, linkTo }: { title: str
   );
 }
 
+function DetailedStatCard({ title, value, breakdown, icon: Icon, colorClass, linkTo }: { title: string, value: number | string, breakdown: any, icon: any, colorClass: string, linkTo: string }) {
+  const total = typeof value === 'number' ? value : parseInt(value as string) || 0;
+  const hibahPct = total === 0 ? 0 : (breakdown.hibah / total) * 100;
+  const pokirPct = total === 0 ? 0 : (breakdown.pokir / total) * 100;
+  const musrembangPct = total === 0 ? 0 : (breakdown.musrembang / total) * 100;
+
+  return (
+    <div className={`rounded-3xl p-6 flex flex-col justify-between h-auto min-h-[12rem] ${colorClass}`}>
+      <div className="flex justify-between items-start mb-2">
+        <h3 className="font-medium text-gray-800">{title}</h3>
+        <div className="p-2 bg-white/40 rounded-full">
+          <Icon className="h-5 w-5 text-gray-800" />
+        </div>
+      </div>
+      <div className="flex justify-between items-end mb-4">
+        <div className="text-5xl font-semibold text-gray-900 tracking-tight">{value}</div>
+        <Link to={linkTo} className="text-sm font-medium text-gray-700 hover:text-gray-900 flex items-center transition-colors">
+          View All <ArrowRight className="ml-1 h-4 w-4" />
+        </Link>
+      </div>
+      <div className="space-y-3 mt-auto">
+        <div className="h-2.5 w-full bg-white/50 rounded-full flex overflow-hidden">
+          <div style={{ width: `${hibahPct}%` }} className="bg-blue-500" title={`Hibah: ${breakdown.hibah}`} />
+          <div style={{ width: `${pokirPct}%` }} className="bg-purple-500" title={`Pokir: ${breakdown.pokir}`} />
+          <div style={{ width: `${musrembangPct}%` }} className="bg-orange-500" title={`Musrembang: ${breakdown.musrembang}`} />
+        </div>
+        <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-700">
+          <div className="flex items-center whitespace-nowrap"><span className="w-2 h-2 rounded-full mr-1.5 bg-blue-500"></span>Hibah ({breakdown.hibah})</div>
+          <div className="flex items-center whitespace-nowrap"><span className="w-2 h-2 rounded-full mr-1.5 bg-purple-500"></span>Pokir ({breakdown.pokir})</div>
+          <div className="flex items-center whitespace-nowrap"><span className="w-2 h-2 rounded-full mr-1.5 bg-orange-500"></span>Musrembang ({breakdown.musrembang})</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 import { CircularProgress } from '@/components/ui/circular-progress';
 
 export function Dashboard() {
@@ -89,30 +125,34 @@ export function Dashboard() {
           colorClass="bg-[#FFF4CC]" 
           linkTo="/musrembang" 
         />
-        <StatCard 
+        <DetailedStatCard 
           title="Belum Diverifikasi" 
-          value={stats.total_draft || 0} 
+          value={stats.total_draft || 0}
+          breakdown={stats.breakdowns?.draft || { hibah: 0, pokir: 0, musrembang: 0 }}
           icon={Clock} 
           colorClass="bg-[#F0E6EF]" 
           linkTo="/usulan?status=DRAFT" 
         />
-        <StatCard 
+        <DetailedStatCard 
           title="Diterima" 
-          value={stats.diterima} 
+          value={stats.diterima}
+          breakdown={stats.breakdowns?.diterima || { hibah: 0, pokir: 0, musrembang: 0 }}
           icon={CheckCircle} 
           colorClass="bg-[#FFD6D6]" 
           linkTo="/usulan?status=DITERIMA" 
         />
-        <StatCard 
+        <DetailedStatCard 
           title="Ditolak" 
-          value={stats.ditolak} 
+          value={stats.ditolak}
+          breakdown={stats.breakdowns?.ditolak || { hibah: 0, pokir: 0, musrembang: 0 }}
           icon={XCircle} 
           colorClass="bg-[#D1D5FF]" 
           linkTo="/usulan?status=DITOLAK" 
         />
-        <StatCard 
+        <DetailedStatCard 
           title="Dikembalikan" 
-          value={stats.dikembalikan} 
+          value={stats.dikembalikan}
+          breakdown={stats.breakdowns?.dikembalikan || { hibah: 0, pokir: 0, musrembang: 0 }}
           icon={RefreshCcw} 
           colorClass="bg-[#B9FBC0]" 
           linkTo="/usulan?status=DIKEMBALIKAN" 

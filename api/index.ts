@@ -111,6 +111,34 @@ app.get('/api/stats', async (req, res) => {
     const dikembalikan = await pool.query("SELECT COUNT(*) as count FROM usulan WHERE status_validasi = 'DIKEMBALIKAN'");
     const total_draft = await pool.query("SELECT COUNT(*) as count FROM usulan WHERE status_validasi = 'DRAFT' OR status_validasi IS NULL");
 
+    const breakdownQuery = await pool.query(`
+      SELECT status_validasi, kategori, COUNT(*) as count 
+      FROM usulan 
+      GROUP BY status_validasi, kategori
+    `);
+
+    const breakdowns = {
+      diterima: { hibah: 0, pokir: 0, musrembang: 0 },
+      ditolak: { hibah: 0, pokir: 0, musrembang: 0 },
+      dikembalikan: { hibah: 0, pokir: 0, musrembang: 0 },
+      draft: { hibah: 0, pokir: 0, musrembang: 0 }
+    };
+
+    breakdownQuery.rows.forEach(row => {
+      let statusKey = '';
+      if (row.status_validasi === 'DITERIMA') statusKey = 'diterima';
+      else if (row.status_validasi === 'DITOLAK') statusKey = 'ditolak';
+      else if (row.status_validasi === 'DIKEMBALIKAN') statusKey = 'dikembalikan';
+      else if (row.status_validasi === 'DRAFT' || !row.status_validasi) statusKey = 'draft';
+
+      if (statusKey) {
+        const count = parseInt(row.count) || 0;
+        if (row.kategori === 'HIBAH') breakdowns[statusKey as keyof typeof breakdowns].hibah += count;
+        else if (row.kategori === 'POKIR') breakdowns[statusKey as keyof typeof breakdowns].pokir += count;
+        else if (row.kategori === 'Musrembang') breakdowns[statusKey as keyof typeof breakdowns].musrembang += count;
+      }
+    });
+
     res.json({
       total_usulan: parseInt(total_usulan.rows[0].count),
       total_hibah: parseInt(total_hibah.rows[0].count),
@@ -119,7 +147,8 @@ app.get('/api/stats', async (req, res) => {
       diterima: parseInt(diterima.rows[0].count),
       ditolak: parseInt(ditolak.rows[0].count),
       dikembalikan: parseInt(dikembalikan.rows[0].count),
-      total_draft: parseInt(total_draft.rows[0].count)
+      total_draft: parseInt(total_draft.rows[0].count),
+      breakdowns
     });
   } catch (error: any) {
     console.error('Stats error:', error);
