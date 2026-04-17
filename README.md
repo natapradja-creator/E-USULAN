@@ -1,21 +1,21 @@
-# Sistem Manajemen Usulan (e-Pokir & e-Hibah)
+# Sistem Manajemen Usulan (e-Pokir, e-Hibah, & Musrembang)
 
-Aplikasi web full-stack untuk mengelola, memvalidasi, dan melacak data usulan (Pokir dan Hibah) dengan antarmuka yang modern, cepat, dan responsif.
+Aplikasi web full-stack untuk mengelola, memvalidasi, dan melacak data usulan (Pokir, Hibah, dan Musrembang) dengan antarmuka yang modern, cepat, dan responsif.
 
-## 🌟 Fitur Utama
+## 🌟 Fitur Utama (Pembaruan Terkini)
 
-*   **Dashboard Interaktif**: Ringkasan statistik usulan (Total Usulan, Hibah, Pokir) dan status validasinya (Diterima, Ditolak, Dikembalikan).
+*   **Dashboard Interaktif & Animatif**: Ringkasan statistik usulan (Total Usulan, Hibah, Pokir, Musrembang, dan Belum Diverifikasi/Draft). Dilengkapi animasi *hover* pada setiap card untuk pengalaman visual yang interaktif.
+*   **Visualisasi Detail Status**: Kemampuan melihat rincian komposisi (breakdown) dari status Diterima, Ditolak, dan Dikembalikan melalui *visual progress bar* yang menunjukkan porsi kategori Hibah, Pokir, dan Musrembang secara instan.
+*   **Manajemen Kategori Fleksibel**: Saat memvalidasi, pengguna dapat mengubah kategori usulan (misal dari Hibah dipindahkan silang ke Musrembang).
 *   **Manajemen Data Usulan**: Tabel data usulan yang dilengkapi dengan fitur pencarian global di seluruh kolom.
-*   **Import Data Massal**: Mendukung import data usulan dalam jumlah besar dengan mudah.
+*   **Import Data Massal (Excel)**: Mendukung import data usulan dalam jumlah besar dengan algoritma pencegahan duplikasi data.
 *   **Sistem Validasi**: 
     *   Validasi usulan dengan status: **Terima**, **Tolak**, atau **Kembalikan**.
     *   Pewajiban pengisian **Anggaran**, **Volume**, dan **Satuan** untuk usulan yang diterima.
     *   Pencatatan catatan/rekomendasi SKPD secara detail.
-*   **Pencarian Cerdas**: Fitur pencarian yang mencakup seluruh kolom data (ID, Pengusul, Isi Usulan, OPD Tujuan, dll).
-*   **Pengurutan Data (Sort By)**: Mengurutkan data berdasarkan Waktu Dibuat, Tanggal Usul, Pengusul, Anggaran, atau Status Validasi secara menaik (ASC) atau menurun (DESC).
-*   **Kolom Tabel Fleksibel (Resizable Columns)**: Lebar kolom tabel dapat diatur secara manual dengan menarik batas kolom (drag-to-resize) agar isi teks terlihat lebih jelas.
-*   **Hapus Massal Aman**: Fitur hapus banyak data sekaligus dengan konfirmasi modal untuk mencegah penghapusan tidak sengaja.
-*   **Animasi Loading Modern**: Menggunakan animasi *Circular Progress* yang elegan saat memuat data.
+*   **Pencarian & Pengurutan Cerdas**: Fitur pencarian yang mencakup seluruh kolom data, serta fitur penyortiran maju/mundur (ASC/DESC).
+*   **Kolom Tabel Fleksibel (Resizable Columns)**: Lebar kolom tabel dapat diatur secara manual (drag-to-resize).
+*   **Hapus Massal Aman**: Fitur hapus banyak data sekaligus dengan konfirmasi modal.
 
 ## 💻 Tech Stack
 
@@ -36,17 +36,47 @@ Aplikasi web full-stack untuk mengelola, memvalidasi, dan melacak data usulan (P
 ## 📖 Panduan Pengguna (User Guide)
 
 ### 1. Melihat Dashboard
-Halaman utama menampilkan ringkasan data. Anda dapat melihat berapa banyak usulan yang masuk, serta status validasinya secara *real-time*.
+Halaman utama menampilkan ringkasan data. Anda dapat melihat proporsi secara detail (Hibah, Pokir, Musrembang) pada setiap card rekapan hasil validasi beserta perhitungan usulan yang masih berstatus "Belum Diverifikasi" (Draft).
 
 ### 2. Mengelola Usulan
-Buka menu **Data Usulan** untuk melihat daftar lengkap.
-*   **Pencarian**: Gunakan kotak pencarian di bagian atas tabel untuk mencari kata kunci apa saja (nama pengusul, ID, OPD, dll).
-*   **Pengurutan**: Gunakan dropdown "Urutkan Berdasarkan" dan "Urutan" untuk menyortir data.
-*   **Ubah Lebar Kolom**: Arahkan kursor ke batas kanan judul kolom hingga muncul ikon panah kiri-kanan, lalu klik dan geser untuk menyesuaikan lebar kolom.
-*   **Validasi**: Klik tombol **Detail & Validasi** pada baris usulan yang diinginkan.
-    *   Jika memilih **Terima**, Anda *wajib* mengisi nominal Anggaran, Volume, dan Satuan.
-    *   Jika memilih **Tolak** atau **Kembalikan**, Anda hanya diwajibkan mengisi Catatan/Rekomendasi (minimal 10 karakter).
-*   **Hapus Data**: Centang satu atau beberapa data, lalu klik tombol **Hapus**. Sebuah jendela konfirmasi akan muncul sebelum data benar-benar dihapus.
+Buka menu **Data Usulan** (atau menu spesifik Hibah/Pokir/Musrembang) untuk melihat daftar lengkap.
+*   **Pencarian**: Gunakan kotak pencarian di bagian atas tabel.
+*   **Ubah Lebar Kolom**: Arahkan kursor ke batas kanan judul kolom hingga muncul ikon panah, lalu geser.
+*   **Validasi**: Klik tombol **Detail & Validasi** pada baris usulan.
+    *   *Perubahan Kategori*: Pada menu detail validasi, Anda dapat mengubah kategori asal.
+    *   Jika **Terima**, Anda *wajib* melengkapi nominal Anggaran, Volume, dan Satuan.
+    *   Jika **Tolak/Kembalikan**, Anda wajid mengisi Catatan/Rekomendasi (minimal 10 karakter).
+
+### 3. Panduan Import Data Excel (XLS/XLSX)
+Sistem memiliki kecerdasan untuk membaca secara fleksibel judul-judul kolom yang ada di file Excel Anda (tanpa memedulikan susunan/urutan kolom, besar/kecil huruf, atau spasi). Agar baris di file Excel dibaca oleh sistem, **wajib** mengisi ID/Nomor Usulan. Jika baris tidak memiliki ID, baris tersebut akan dilewati.
+
+Berikut adalah nama/judul pilar (header) standar yang dibaca oleh sistem (kiri) beserta variasi judul yang juga dimaklumi oleh sistem (kanan):
+
+| Data yang Disimpan | Contoh Variasi Judul Kolom di Excel yang Diterima | Keterangan |
+| :--- | :--- | :--- |
+| **ID Usulan** | `ID Usulan`, `ID`, `No`, `Nomor`, `Kode` | **(Wajib)** Menjadi identifier valid/tidaknya baris. |
+| **Tanggal Usul** | `Tanggal Usul`, `Tanggal`, `Date`, `Waktu` | (Opsional) Teks format tanggal. |
+| **Pengusul** | `Pengusul`, `Nama`, `Nama Pengusul`, `Dari` | (Opsional) |
+| **Usulan / Judul** | `Usulan`, `Nama Usulan`, `Judul`, `Kegiatan` | (Opsional) |
+| **Masalah / Latar Belakang** | `Masalah`, `Latar Belakang`, `Deskripsi`, `Uraian` | (Opsional) |
+| **Alamat / Lokasi** | `Alamat Lokasi`, `Alamat`, `Lokasi`, `Tempat` | (Opsional) |
+| **Kecamatan** | `Kecamatan`, `Kec` | (Opsional) |
+| **Usulan Ke** | `Usulan Ke`, `Ke` | (Opsional) |
+| **OPD Tujuan Awal** | `OPD Tujuan Awal`, `OPD Awal`, `Tujuan Awal` | (Opsional) |
+| **OPD Tujuan Akhir** | `OPD Tujuan Akhir`, `OPD Akhir`, `OPD`, `Tujuan` | (Opsional) |
+| **Status Existing** | `Status Existing`, `Status` | (Opsional) |
+| **Catatan**| `Catatan`, `Keterangan` | (Opsional) |
+| **Sekwan (Rekomendasi)** | `Rekomendasi Sekwan`, `Sekwan` | (Opsional) |
+| **Mitra (Rekomendasi)** | `Rekomendasi Mitra`, `Mitra` | (Opsional) |
+| **SKPD (Rekomendasi)** | `Rekomendasi SKPD`, `SKPD` | (Opsional) |
+| **TAPD (Rekomendasi)** | `Rekomendasi TAPD`, `TAPD` | (Opsional) |
+| **Volume** | `Volume`, `Vol`, `Jumlah` | (Opsional) |
+| **Satuan** | `Satuan`, `Unit` | (Opsional) |
+| **Anggaran / Biaya** | `Anggaran`, `Biaya`, `Pagu`, `Rupiah`, `Harga` | (Opsional) Angka atau teks. |
+| **Jenis Belanja** | `Jenis Belanja`, `Jenis` | (Opsional) |
+| **Sub Kegiatan** | `Sub Kegiatan`, `Kegiatan` | (Opsional) |
+
+*(Note: Sistem mengeliminasi huruf spesial saat mencocokkan, jadi "ID-Usulan" / "id_usulan!" akan tetap terbaca).*
 
 ---
 
