@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 
 function StatCard({ title, value, icon: Icon, colorClass, linkTo }: { title: string, value: number | string, icon: any, colorClass: string, linkTo: string }) {
   return (
-    <div className={`rounded-3xl p-6 flex flex-col justify-between h-40 ${colorClass}`}>
+    <div className={`rounded-3xl p-6 flex flex-col justify-between h-40 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl ${colorClass}`}>
       <div className="flex justify-between items-start">
         <h3 className="font-medium text-gray-800">{title}</h3>
         <div className="p-2 bg-white/40 rounded-full">
@@ -30,7 +30,7 @@ function DetailedStatCard({ title, value, breakdown, icon: Icon, colorClass, lin
   const musrembangPct = total === 0 ? 0 : (breakdown.musrembang / total) * 100;
 
   return (
-    <div className={`rounded-3xl p-6 flex flex-col justify-between h-auto min-h-[12rem] ${colorClass}`}>
+    <div className={`rounded-3xl p-6 flex flex-col justify-between h-auto min-h-[12rem] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl ${colorClass}`}>
       <div className="flex justify-between items-start mb-2">
         <h3 className="font-medium text-gray-800">{title}</h3>
         <div className="p-2 bg-white/40 rounded-full">
