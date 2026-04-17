@@ -105,17 +105,21 @@ app.get('/api/stats', async (req, res) => {
     const total_usulan = await pool.query("SELECT COUNT(*) as count FROM usulan");
     const total_hibah = await pool.query("SELECT COUNT(*) as count FROM usulan WHERE kategori = 'HIBAH'");
     const total_pokir = await pool.query("SELECT COUNT(*) as count FROM usulan WHERE kategori = 'POKIR'");
+    const total_musrembang = await pool.query("SELECT COUNT(*) as count FROM usulan WHERE kategori = 'Musrembang'");
     const diterima = await pool.query("SELECT COUNT(*) as count FROM usulan WHERE status_validasi = 'DITERIMA'");
     const ditolak = await pool.query("SELECT COUNT(*) as count FROM usulan WHERE status_validasi = 'DITOLAK'");
     const dikembalikan = await pool.query("SELECT COUNT(*) as count FROM usulan WHERE status_validasi = 'DIKEMBALIKAN'");
+    const total_draft = await pool.query("SELECT COUNT(*) as count FROM usulan WHERE status_validasi = 'DRAFT' OR status_validasi IS NULL");
 
     res.json({
       total_usulan: parseInt(total_usulan.rows[0].count),
       total_hibah: parseInt(total_hibah.rows[0].count),
       total_pokir: parseInt(total_pokir.rows[0].count),
+      total_musrembang: parseInt(total_musrembang.rows[0].count),
       diterima: parseInt(diterima.rows[0].count),
       ditolak: parseInt(ditolak.rows[0].count),
-      dikembalikan: parseInt(dikembalikan.rows[0].count)
+      dikembalikan: parseInt(dikembalikan.rows[0].count),
+      total_draft: parseInt(total_draft.rows[0].count)
     });
   } catch (error: any) {
     console.error('Stats error:', error);

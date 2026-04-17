@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { fetchStats } from '@/lib/api';
-import { FileText, CheckCircle, XCircle, RefreshCcw, Layers, BarChart3, Loader2, Package, Box, Users, ArrowRight, FileBox } from 'lucide-react';
+import { FileText, CheckCircle, XCircle, RefreshCcw, Layers, BarChart3, Loader2, Package, Box, Users, ArrowRight, FileBox, Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 function StatCard({ title, value, icon: Icon, colorClass, linkTo }: { title: string, value: number | string, icon: any, colorClass: string, linkTo: string }) {
@@ -60,7 +60,7 @@ export function Dashboard() {
     <div className="space-y-8 max-w-6xl mx-auto">
       <h1 className="text-4xl font-bold tracking-tight text-gray-900">Dashboard</h1>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <StatCard 
           title="Total Usulan" 
           value={stats.total_usulan} 
@@ -81,6 +81,20 @@ export function Dashboard() {
           icon={Box} 
           colorClass="bg-[#E0D4FC]" 
           linkTo="/pokir" 
+        />
+        <StatCard 
+          title="Total Musrembang" 
+          value={stats.total_musrembang || 0} 
+          icon={Users} 
+          colorClass="bg-[#FFF4CC]" 
+          linkTo="/musrembang" 
+        />
+        <StatCard 
+          title="Belum Diverifikasi" 
+          value={stats.total_draft || 0} 
+          icon={Clock} 
+          colorClass="bg-[#F0E6EF]" 
+          linkTo="/usulan?status=DRAFT" 
         />
         <StatCard 
           title="Diterima" 
