@@ -6,9 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { fetchUsulan, bulkDeleteUsulan, clearUsulan } from '@/lib/api';
+import { fetchUsulan, bulkDeleteUsulan, clearUsulan, bulkMoveUsulan } from '@/lib/api';
 import { ValidationModal } from './ValidationModal';
-import { Search, ChevronLeft, ChevronRight, FileText, Trash2, AlertTriangle, Loader2, CheckCircle, XCircle, AlertCircle, Clock, Download } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, FileText, Trash2, AlertTriangle, Loader2, CheckCircle, XCircle, AlertCircle, Clock, Download, ArrowLeftRight } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -150,6 +150,7 @@ export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isClearModalOpen, setIsClearModalOpen] = useState(false);
   const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false);
+  const [bulkMoveData, setBulkMoveData] = useState<{ isOpen: boolean; targetCategory: string }>({ isOpen: false, targetCategory: '' });
 
   // Modal
   const [selectedUsulan, setSelectedUsulan] = useState<any>(null);
@@ -237,6 +238,22 @@ export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
       loadData();
     } catch (error) {
       toast.error('Gagal menghapus data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBulkMove = async () => {
+    if (selectedIds.length === 0 || !bulkMoveData.targetCategory) return;
+    
+    setLoading(true);
+    try {
+      await bulkMoveUsulan(selectedIds, bulkMoveData.targetCategory);
+      toast.success(`Berhasil memindahkan ${selectedIds.length} data ke ${bulkMoveData.targetCategory}`);
+      setBulkMoveData({ isOpen: false, targetCategory: '' });
+      loadData();
+    } catch (error: any) {
+      toast.error(error.message || 'Gagal memindahkan data');
     } finally {
       setLoading(false);
     }
@@ -371,10 +388,22 @@ export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
         </div>
         <div className="flex items-center gap-2">
           {selectedIds.length > 0 && (
-            <Button variant="destructive" size="sm" onClick={() => setIsBulkDeleteModalOpen(true)} disabled={loading}>
-              <Trash2 className="h-4 w-4 mr-2" />
-              Hapus ({selectedIds.length})
-            </Button>
+            <>
+              <Select onValueChange={(val) => setBulkMoveData({ isOpen: true, targetCategory: val })} value="">
+                <SelectTrigger className="w-[180px] h-9" disabled={loading}>
+                  <SelectValue placeholder="Pindahkan ke..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {kategori !== 'HIBAH' && <SelectItem value="HIBAH">HIBAH</SelectItem>}
+                  {kategori !== 'POKIR' && <SelectItem value="POKIR">POKIR</SelectItem>}
+                  {kategori !== 'Musrembang' && <SelectItem value="Musrembang">Musrembang</SelectItem>}
+                </SelectContent>
+              </Select>
+              <Button variant="destructive" size="sm" onClick={() => setIsBulkDeleteModalOpen(true)} disabled={loading}>
+                <Trash2 className="h-4 w-4 mr-2" />
+                Hapus ({selectedIds.length})
+              </Button>
+            </>
           )}
           <Button variant="outline" size="sm" onClick={handleExport} disabled={loading || total === 0} className="text-green-700 border-green-200 hover:bg-green-50">
             <Download className="h-4 w-4 mr-2" />
@@ -608,6 +637,26 @@ export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
             </Button>
             <Button variant="destructive" onClick={handleBulkDelete} disabled={loading}>
               Ya, Hapus Data
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={bulkMoveData.isOpen} onOpenChange={(open) => !open && setBulkMoveData(prev => ({ ...prev, isOpen: false }))}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Pindahkan Kategori?</DialogTitle>
+            <DialogDescription>
+              Anda akan memindahkan <span className="font-semibold text-gray-900">{selectedIds.length} data</span> terpilih ke kategori <span className="font-semibold text-blue-600">{bulkMoveData.targetCategory}</span>.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-4">
+            <Button variant="outline" onClick={() => setBulkMoveData(prev => ({ ...prev, isOpen: false }))} disabled={loading}>
+              Batal
+            </Button>
+            <Button onClick={handleBulkMove} disabled={loading} className="gap-2">
+              <ArrowLeftRight className="h-4 w-4" />
+              Ya, Pindahkan
             </Button>
           </DialogFooter>
         </DialogContent>

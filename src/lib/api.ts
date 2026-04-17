@@ -59,6 +59,30 @@ export async function checkDuplicates(ids: string[]) {
   }
 }
 
+export async function bulkMoveUsulan(ids: string[], targetCategory: string) {
+  const res = await fetch(`${API_URL}/usulan/bulk-move`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ids, targetCategory }),
+  });
+  
+  const text = await res.text();
+  if (!res.ok) {
+    try {
+      const errData = JSON.parse(text);
+      throw new Error(errData.error || 'Failed to move data');
+    } catch (e) {
+      throw new Error('Failed to move data');
+    }
+  }
+  
+  try {
+    return JSON.parse(text);
+  } catch (e) {
+    throw new Error('API returned non-JSON response');
+  }
+}
+
 export async function importUsulan(data: any[]) {
   const res = await fetch(`${API_URL}/usulan/import`, {
     method: 'POST',
