@@ -7,12 +7,36 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { validateUsulan } from '@/lib/api';
 import { toast } from 'sonner';
+import { Plus, Minus } from 'lucide-react';
+import { terbilang } from '@/lib/utils';
 
 interface ValidationModalProps {
   isOpen: boolean;
   onClose: () => void;
   usulan: any;
   onSuccess: () => void;
+}
+
+function useHistoryCache(key: string, maxItems = 10) {
+  const [history, setHistory] = useState<string[]>([]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem(`history_${key}`);
+    if (saved) {
+      try {
+        setHistory(JSON.parse(saved));
+      } catch (e) {}
+    }
+  }, [key]);
+
+  const addHistory = (item: string) => {
+    if (!item || item.trim() === '') return;
+    const newHistory = [item, ...history.filter(h => h !== item)].slice(0, maxItems);
+    setHistory(newHistory);
+    localStorage.setItem(`history_${key}`, JSON.stringify(newHistory));
+  };
+
+  return { history, addHistory };
 }
 
 export function ValidationModal({ isOpen, onClose, usulan, onSuccess }: ValidationModalProps) {
@@ -22,6 +46,9 @@ export function ValidationModal({ isOpen, onClose, usulan, onSuccess }: Validati
   const [satuan, setSatuan] = useState('');
   const [kategori, setKategori] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const { history: anggaranHistory, addHistory: addAnggaranHistory } = useHistoryCache('anggaran');
+  const { history: catatanHistory, addHistory: addCatatanHistory } = useHistoryCache('catatan');
 
   useEffect(() => {
     if (usulan) {
@@ -56,6 +83,9 @@ export function ValidationModal({ isOpen, onClose, usulan, onSuccess }: Validati
 
     setLoading(true);
     try {
+      addAnggaranHistory(anggaran);
+      addCatatanHistory(catatan);
+
       await validateUsulan(usulan.id_usulan, {
         status,
         catatan,
@@ -139,32 +169,71 @@ export function ValidationModal({ isOpen, onClose, usulan, onSuccess }: Validati
           <div className="grid grid-cols-4 items-center gap-4">
             <Label className="text-right font-bold">Volume <span className="text-red-500">*</span></Label>
             <div className="col-span-3">
-              <Input
-                value={volume}
-                onChange={(e) => setVolume(e.target.value)}
-                placeholder="Contoh: 10"
-              />
+              <div className="flex items-center gap-2">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="icon" 
+                  onClick={() => setVolume(v => String(Math.max(0, (parseInt(v) || 0) - 1)))}
+                >
+                  <Minus className="h-4 w-4" />
+                </Button>
+                <Input
+                  type="number"
+                  min="0"
+                  value={volume}
+                  onChange={(e) => setVolume(e.target.value)}
+                  placeholder="Contoh: 10"
+                  className="text-center w-32"
+                />
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="icon" 
+                  onClick={() => setVolume(v => String((parseInt(v) || 0) + 1))}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label className="text-right font-bold">Satuan <span className="text-red-500">*</span></Label>
             <div className="col-span-3">
               <Input
+                list="satuan-options"
                 value={satuan}
                 onChange={(e) => setSatuan(e.target.value)}
                 placeholder="Contoh: Paket"
               />
+              <datalist id="satuan-options">
+                <option value="Paket" />
+                <option value="Unit" />
+                <option value="Ruang" />
+                <option value="Meter" />
+                <option value="M2" />
+                <option value="Titik" />
+              </datalist>
             </div>
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label className="text-right font-bold">Anggaran <span className="text-red-500">*</span></Label>
+          <div className="grid grid-cols-4 items-start gap-4">
+            <Label className="text-right font-bold mt-2">Anggaran <span className="text-red-500">*</span></Label>
             <div className="col-span-3">
               <Input
+                list="anggaran-options"
                 value={anggaran}
                 onChange={(e) => setAnggaran(e.target.value)}
                 placeholder="Contoh: 100000000"
                 className="font-mono"
               />
+              <datalist id="anggaran-options">
+                {anggaranHistory.map((h, i) => <option key={i} value={h} />)}
+              </datalist>
+              {parseInt(anggaran) > 0 && (
+                <div className="mt-2 text-sm text-gray-700 italic border-l-2 border-blue-500 pl-2 py-1 bg-blue-50/50">
+                  {terbilang(parseInt(anggaran))} Rupiah
+                </div>
+              )}
               <p className="text-xs text-gray-500 mt-1">
                 Wajib diisi jika usulan akan diterima.
               </p>
@@ -178,9 +247,25 @@ export function ValidationModal({ isOpen, onClose, usulan, onSuccess }: Validati
               placeholder="Masukkan catatan validasi (minimal 10 karakter)..."
               value={catatan}
               onChange={(e) => setCatatan(e.target.value)}
-              className="min-h-[100px]"
+              className="min-h-[100px] w-full"
             />
-            <p className="text-xs text-gray-500 mt-1">
+            {catatanHistory.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-2 items-center">
+                <span className="text-xs text-gray-500">Riwayat:</span>
+                {catatanHistory.map((h, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => setCatatan(h)}
+                    title={h}
+                    className="text-[11px] px-2.5 py-1 bg-gray-50 hover:bg-gray-200 text-gray-700 rounded-full truncate max-w-[200px] border transition-colors cursor-pointer"
+                  >
+                    {h}
+                  </button>
+                ))}
+              </div>
+            )}
+            <p className="text-xs text-gray-500 mt-2">
               {catatan.length}/10 karakter minimal. Catatan ini akan disimpan ke kolom Rekomendasi SKPD.
             </p>
           </div>

@@ -238,13 +238,37 @@ app.post('/api/usulan/check-duplicates', async (req, res) => {
   }
 
   try {
-    const placeholders = ids.map((_, i) => `$${i + 1}`).join(',');
+    const placeholders = ids.map((_, i) => `${i + 1}`).join(',');
     const query = `SELECT id_usulan FROM usulan WHERE id_usulan IN (${placeholders})`;
     const { rows } = await pool.query(query, ids);
     res.json({ existing: rows.map(r => r.id_usulan) });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Failed to check duplicates' });
+  }
+});
+
+// Bulk Move Kategori
+app.put('/api/usulan/bulk-move', async (req, res) => {
+  const { ids, targetCategory } = req.body;
+  
+  if (!ids || !Array.isArray(ids) || ids.length === 0) {
+    return res.status(400).json({ error: 'Tidak ada ID yang diberikan' });
+  }
+
+  const validCategories = ['HIBAH', 'POKIR', 'Musrembang'];
+  if (!validCategories.includes(targetCategory)) {
+    return res.status(400).json({ error: 'Kategori tujuan tidak valid' });
+  }
+
+  try {
+    const placeholders = ids.map((_, i) => `${i + 2}`).join(',');
+    const query = `UPDATE usulan SET kategori = $1 WHERE id_usulan IN (${placeholders})`;
+    await pool.query(query, [targetCategory, ...ids]);
+    res.json({ success: true, message: `Berhasil memindahkan ${ids.length} data ke ${targetCategory}` });
+  } catch (error) {
+    console.error('Bulk move error:', error);
+    res.status(500).json({ error: 'Gagal memindahkan data' });
   }
 });
 
