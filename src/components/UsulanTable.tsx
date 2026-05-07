@@ -197,18 +197,18 @@ export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'DITERIMA': return <Badge className="bg-green-100 text-green-800 border-green-200 hover:bg-green-200 flex items-center gap-1 w-fit"><CheckCircle className="w-3 h-3"/> Diterima</Badge>;
-      case 'DITOLAK': return <Badge className="bg-rose-900 text-white border-rose-950 hover:bg-rose-800 flex items-center gap-1 w-fit"><XCircle className="w-3 h-3"/> Ditolak</Badge>;
-      case 'DIKEMBALIKAN': return <Badge className="bg-orange-100 text-orange-800 border-orange-200 hover:bg-orange-200 flex items-center gap-1 w-fit"><AlertCircle className="w-3 h-3"/> Dikembalikan</Badge>;
+      case 'DITERIMA': return <Badge className="bg-green-100 text-green-800 border-green-200 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800 dark:hover:bg-green-900/50 flex items-center gap-1 w-fit"><CheckCircle className="w-3 h-3"/> Diterima</Badge>;
+      case 'DITOLAK': return <Badge className="bg-rose-900 text-white border-rose-950 hover:bg-rose-800 dark:bg-rose-800 dark:text-rose-100 dark:border-rose-900 dark:hover:bg-rose-700 flex items-center gap-1 w-fit"><XCircle className="w-3 h-3"/> Ditolak</Badge>;
+      case 'DIKEMBALIKAN': return <Badge className="bg-orange-100 text-orange-800 border-orange-200 hover:bg-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-800 dark:hover:bg-orange-900/50 flex items-center gap-1 w-fit"><AlertCircle className="w-3 h-3"/> Dikembalikan</Badge>;
       default: return <Badge className="bg-muted text-muted-foreground border-border hover:bg-muted/80 flex items-center gap-1 w-fit"><Clock className="w-3 h-3"/> Draft</Badge>;
     }
   };
 
   const getRowClassName = (status: string) => {
     switch (status) {
-      case 'DITERIMA': return "hover:bg-green-100 bg-green-50";
-      case 'DITOLAK': return "hover:bg-rose-100 bg-rose-50";
-      case 'DIKEMBALIKAN': return "hover:bg-orange-100 bg-orange-50";
+      case 'DITERIMA': return "bg-green-50 hover:bg-green-100 dark:bg-green-900/20 dark:hover:bg-green-900/40";
+      case 'DITOLAK': return "bg-rose-50 hover:bg-rose-100 dark:bg-rose-900/20 dark:hover:bg-rose-900/40";
+      case 'DIKEMBALIKAN': return "bg-orange-50 hover:bg-orange-100 dark:bg-orange-900/20 dark:hover:bg-orange-900/40";
       default: return "hover:bg-muted/50 bg-background";
     }
   };
@@ -344,7 +344,7 @@ export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
       <div className="flex flex-col sm:flex-row gap-4 justify-between">
         <div className="flex flex-wrap gap-2 flex-1">
           <div className="relative flex-1 min-w-[200px] max-w-sm">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Cari di semua kolom..."
               className="pl-8"
@@ -405,15 +405,15 @@ export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
               </Button>
             </>
           )}
-          <Button variant="outline" size="sm" onClick={handleExport} disabled={loading || total === 0} className="text-green-700 border-green-200 hover:bg-green-50">
+          <Button variant="outline" size="sm" onClick={handleExport} disabled={loading || total === 0} className="text-green-700 dark:text-green-400 border-green-200 dark:border-green-900/50 hover:bg-green-50 dark:hover:bg-green-900/30">
             <Download className="h-4 w-4 mr-2" />
             Export Excel
           </Button>
-          <Button variant="outline" size="sm" onClick={() => setIsClearModalOpen(true)} disabled={loading || total === 0} className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700">
+          <Button variant="outline" size="sm" onClick={() => setIsClearModalOpen(true)} disabled={loading || total === 0} className="text-red-600 dark:text-red-400 border-red-200 dark:border-red-900/50 hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-700 dark:hover:text-red-300">
             <AlertTriangle className="h-4 w-4 mr-2" />
             Clear All Data
           </Button>
-          <div className="text-sm text-gray-500 ml-2">
+          <div className="text-sm text-muted-foreground ml-2">
             Total: {total} data
           </div>
         </div>
@@ -424,9 +424,9 @@ export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
           <AlertCircle className="w-4 h-4 text-blue-500" />
           Keterangan Warna Baris:
         </span>
-        <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-green-100 border border-green-300"></div> Diterima</div>
-        <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-rose-900 border border-rose-950"></div> Ditolak</div>
-        <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-orange-100 border border-orange-300"></div> Dikembalikan</div>
+        <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-green-100 border border-green-300 dark:bg-green-900/40 dark:border-green-700"></div> Diterima</div>
+        <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-rose-900 border border-rose-950 dark:bg-rose-800 dark:border-rose-900"></div> Ditolak</div>
+        <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-orange-100 border border-orange-300 dark:bg-orange-900/40 dark:border-orange-700"></div> Dikembalikan</div>
         <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-background border border-border"></div> Draft</div>
       </div>
 
@@ -487,8 +487,8 @@ export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
                     <div className="flex flex-col items-center justify-center space-y-3">
                       <AlertTriangle className="h-8 w-8" />
                       <p className="font-medium">Gagal memuat data</p>
-                      <div className="bg-red-50 p-4 rounded-md border border-red-200 max-w-2xl overflow-auto text-left">
-                        <p className="text-sm font-mono text-red-800 break-words">{error}</p>
+                      <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-md border border-red-200 dark:border-red-900/50 max-w-2xl overflow-auto text-left">
+                        <p className="text-sm font-mono text-red-800 dark:text-red-400 break-words">{error}</p>
                       </div>
                     </div>
                   </TableCell>
@@ -519,7 +519,7 @@ export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
                     <TableCell style={getColStyle('kecamatan')} className="truncate" title={row.kecamatan}>{row.kecamatan}</TableCell>
                     <TableCell style={getColStyle('usulan_ke')} className="truncate" title={row.usulan_ke}>{row.usulan_ke}</TableCell>
                     <TableCell style={getColStyle('opd_tujuan_awal')} className="truncate" title={row.opd_tujuan_awal}>{row.opd_tujuan_awal}</TableCell>
-                    <TableCell style={getColStyle('opd_tujuan_akhir')} className="text-sm text-gray-600 truncate" title={row.opd_tujuan_akhir}>{row.opd_tujuan_akhir}</TableCell>
+                    <TableCell style={getColStyle('opd_tujuan_akhir')} className="text-sm text-muted-foreground truncate" title={row.opd_tujuan_akhir}>{row.opd_tujuan_akhir}</TableCell>
                     <TableCell style={getColStyle('status_existing')} className="truncate" title={row.status_existing}>{row.status_existing}</TableCell>
                     <TableCell style={getColStyle('catatan')} className="truncate" title={row.catatan}>{row.catatan}</TableCell>
                     <TableCell style={getColStyle('rekomendasi_sekwan')} className="truncate" title={row.rekomendasi_sekwan}>{row.rekomendasi_sekwan}</TableCell>
@@ -555,7 +555,7 @@ export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
 
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center space-x-2">
-          <p className="text-sm text-gray-500">Baris per halaman</p>
+          <p className="text-sm text-muted-foreground">Baris per halaman</p>
           <Select value={limit.toString()} onValueChange={(v) => { setLimit(Number(v)); setPage(1); }}>
             <SelectTrigger className="h-8 w-[80px]">
               <SelectValue placeholder={limit.toString()} />
@@ -571,7 +571,7 @@ export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
           </Select>
         </div>
         <div className="flex items-center space-x-4">
-          <div className="text-sm text-gray-500">
+          <div className="text-sm text-muted-foreground">
             Halaman {page} dari {totalPages || 1}
           </div>
           <div className="flex items-center space-x-2">
@@ -647,7 +647,7 @@ export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
           <DialogHeader>
             <DialogTitle>Pindahkan Kategori?</DialogTitle>
             <DialogDescription>
-              Anda akan memindahkan <span className="font-semibold text-gray-900">{selectedIds.length} data</span> terpilih ke kategori <span className="font-semibold text-blue-600">{bulkMoveData.targetCategory}</span>.
+              Anda akan memindahkan <span className="font-semibold text-foreground">{selectedIds.length} data</span> terpilih ke kategori <span className="font-semibold text-blue-600 dark:text-blue-400">{bulkMoveData.targetCategory}</span>.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="mt-4">

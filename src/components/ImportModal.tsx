@@ -182,7 +182,7 @@ export function ImportModal({ isOpen, onClose, kategori, onSuccess }: ImportModa
               />
             </label>
             {loading && (
-              <div className="flex items-center text-sm text-gray-500">
+              <div className="flex items-center text-sm text-muted-foreground">
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
                 Memproses data...
               </div>
@@ -200,7 +200,7 @@ export function ImportModal({ isOpen, onClose, kategori, onSuccess }: ImportModa
           {data.length > 0 && (
             <div className="flex-1 border rounded-md overflow-y-auto min-h-[300px] max-h-[60vh]">
               <Table>
-                <TableHeader className="sticky top-0 bg-white z-10 shadow-sm">
+                <TableHeader className="sticky top-0 bg-muted z-10 shadow-sm border-b border-border">
                   <TableRow>
                     <TableHead className="w-[40px] text-center">
                       <input 
@@ -220,7 +220,7 @@ export function ImportModal({ isOpen, onClose, kategori, onSuccess }: ImportModa
                 </TableHeader>
                 <TableBody>
                   {data.map((row, i) => (
-                    <TableRow key={i} className={row._status === 'DUPLIKAT' ? 'bg-red-50/50' : ''}>
+                    <TableRow key={i} className={row._status === 'DUPLIKAT' ? 'bg-red-50/50 dark:bg-red-900/20' : ''}>
                       <TableCell className="text-center">
                         <input 
                           type="checkbox" 
@@ -252,7 +252,7 @@ export function ImportModal({ isOpen, onClose, kategori, onSuccess }: ImportModa
             {data.length > 0 && duplicateCount > 0 && (
               <Button 
                 variant="outline" 
-                className="text-blue-600 border-blue-200 hover:bg-blue-50 w-full sm:w-auto"
+                className="text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-900/30 w-full sm:w-auto"
                 onClick={async () => {
                   const duplicatesToUpdate = data.filter(d => d._status === 'DUPLIKAT' && d.kecamatan);
                   if (duplicatesToUpdate.length === 0) {

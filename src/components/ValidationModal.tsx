@@ -122,25 +122,25 @@ export function ValidationModal({ isOpen, onClose, usulan, onSuccess }: Validati
           </div>
           <div className="grid grid-cols-4 items-start gap-4">
             <Label className="text-right font-bold mt-1">Usulan</Label>
-            <div className="col-span-3 text-sm text-gray-700 bg-gray-50 p-3 rounded-md border">
+            <div className="col-span-3 text-sm text-foreground bg-muted p-3 rounded-md border border-border">
               {usulan.usulan}
             </div>
           </div>
           <div className="grid grid-cols-4 items-start gap-4">
             <Label className="text-right font-bold mt-1">Masalah</Label>
-            <div className="col-span-3 text-sm text-gray-700 bg-gray-50 p-3 rounded-md border whitespace-pre-wrap">
+            <div className="col-span-3 text-sm text-foreground bg-muted p-3 rounded-md border border-border whitespace-pre-wrap">
               {usulan.masalah}
             </div>
           </div>
           <div className="grid grid-cols-4 items-start gap-4">
             <Label className="text-right font-bold mt-1">Alamat Lokasi</Label>
-            <div className="col-span-3 text-sm text-gray-700 bg-gray-50 p-3 rounded-md border whitespace-pre-wrap">
+            <div className="col-span-3 text-sm text-foreground bg-muted p-3 rounded-md border border-border whitespace-pre-wrap">
               {usulan.alamat_lokasi || '-'}
             </div>
           </div>
           <div className="grid grid-cols-4 items-start gap-4">
             <Label className="text-right font-bold mt-1">Kecamatan</Label>
-            <div className="col-span-3 text-sm text-gray-700 bg-gray-50 p-3 rounded-md border">
+            <div className="col-span-3 text-sm text-foreground bg-muted p-3 rounded-md border border-border">
               {usulan.kecamatan || '-'}
             </div>
           </div>
@@ -230,11 +230,11 @@ export function ValidationModal({ isOpen, onClose, usulan, onSuccess }: Validati
                 {anggaranHistory.map((h, i) => <option key={i} value={h} />)}
               </datalist>
               {parseInt(anggaran) > 0 && (
-                <div className="mt-2 text-sm text-gray-700 italic border-l-2 border-blue-500 pl-2 py-1 bg-blue-50/50">
+                <div className="mt-2 text-sm text-foreground italic border-l-2 border-blue-500 pl-2 py-1 bg-blue-50/50 dark:bg-blue-900/20">
                   {terbilang(parseInt(anggaran))} Rupiah
                 </div>
               )}
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 Wajib diisi jika usulan akan diterima.
               </p>
             </div>
@@ -251,21 +251,21 @@ export function ValidationModal({ isOpen, onClose, usulan, onSuccess }: Validati
             />
             {catatanHistory.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-2 items-center">
-                <span className="text-xs text-gray-500">Riwayat:</span>
+                <span className="text-xs text-muted-foreground">Riwayat:</span>
                 {catatanHistory.map((h, i) => (
                   <button
                     key={i}
                     type="button"
                     onClick={() => setCatatan(h)}
                     title={h}
-                    className="text-[11px] px-2.5 py-1 bg-gray-50 hover:bg-gray-200 text-gray-700 rounded-full truncate max-w-[200px] border transition-colors cursor-pointer"
+                    className="text-[11px] px-2.5 py-1 bg-muted hover:bg-muted/80 text-foreground rounded-full truncate max-w-[200px] border border-border transition-colors cursor-pointer"
                   >
                     {h}
                   </button>
                 ))}
               </div>
             )}
-            <p className="text-xs text-gray-500 mt-2">
+            <p className="text-xs text-muted-foreground mt-2">
               {catatan.length}/10 karakter minimal. Catatan ini akan disimpan ke kolom Rekomendasi SKPD.
             </p>
           </div>

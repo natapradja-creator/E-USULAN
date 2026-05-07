@@ -38,7 +38,7 @@ export function UsulanPage({ kategori }: UsulanPageProps) {
         )}
       </div>
 
-      <div className="bg-white p-6 rounded-lg border shadow-sm">
+      <div className="bg-card text-card-foreground p-6 rounded-lg border border-border shadow-sm">
         <UsulanTable key={kategori} kategori={kategori} refreshTrigger={refreshTrigger} />
       </div>
 

@@ -137,13 +137,69 @@ npm start
 └── vite.config.ts     # Konfigurasi Vite
 ```
 
-## 🤝 Kontribusi
+## 🚀 Panduan Instalasi ke Vercel & Setup Neon DB
 
-Kontribusi selalu diterima! Silakan buat *Pull Request* atau buka *Issue* jika Anda menemukan bug atau memiliki saran fitur baru.
+Ikuti langkah-langkah berikut untuk melakukan deployment mandiri ke ekosistem Vercel:
+
+### 1. Persiapan Database (Neon UI/Vercel Storage)
+*   Buka [Neon.tech](https://neon.tech/) atau gunakan fitur **Storage -> Postgres** di Dashboard Vercel.
+*   Buat project baru dan pilih region terdekat (misal: Singapore).
+*   Salin **Connection String** yang diberikan. Formatnya akan terlihat seperti:
+    `postgres://alex:password@ep-cool-darkness-123.ap-southeast-1.aws.neon.tech/neondb?sslmode=require`
+*   **Penting:** Jika ada parameter `&channel_binding=require` di akhir URL, sistem ini sudah otomatis menanganinya, namun disarankan untuk menyalin string utamanya saja.
+
+### 2. Konfigurasi Environment Variables di Vercel
+*   Masuk ke Dashboard Vercel, pilih Project Anda.
+*   Buka menu **Settings** -> **Environment Variables**.
+*   Tambahkan variabel berikut:
+    *   `DATABASE_URL`: Isi dengan Connection String dari Neon DB yang Anda salin tadi.
+    *   `NODE_ENV`: `production`
+
+### 3. Setup Deployment
+*   Jika Anda menghubungkan GitHub, Vercel akan otomatis mendeteksi file `vercel.json` dan folder `api/`.
+*   Pastikan **Build Command** diatur ke: `npm run build`
+*   Pastikan **Output Directory** diatur ke: `dist`
+*   Klik **Deploy**.
+
+### 4. Inisialisasi Tabel
+Sistem ini menggunakan fitur `CREATE TABLE IF NOT EXISTS` secara otomatis. Saat aplikasi pertama kali dijalankan di Vercel, ia akan mencoba membuat tabel `usulan` di database Neon Anda secara otomatis. Jika tidak berhasil, Anda dapat menjalankan perintah SQL manual berikut di konsol Neon:
+
+```sql
+CREATE TABLE usulan (
+  id_usulan TEXT PRIMARY KEY,
+  tanggal_usul TEXT,
+  pengusul TEXT,
+  usulan TEXT,
+  masalah TEXT,
+  alamat_lokasi TEXT,
+  kecamatan TEXT,
+  usulan_ke TEXT,
+  opd_tujuan_awal TEXT,
+  opd_tujuan_akhir TEXT,
+  status_existing TEXT,
+  catatan TEXT,
+  rekomendasi_sekwan TEXT,
+  rekomendasi_mitra TEXT,
+  rekomendasi_skpd TEXT,
+  rekomendasi_tapd TEXT,
+  volume TEXT,
+  satuan TEXT,
+  anggaran TEXT,
+  jenis_belanja TEXT,
+  sub_kegiatan TEXT,
+  kategori TEXT DEFAULT 'ALL',
+  status TEXT DEFAULT 'DRAFT',
+  catatan_validasi TEXT,
+  validator TEXT,
+  tanggal_validasi TIMESTAMP
+);
+```
+
+---
 
 ## 📄 Lisensi
 
-[MIT License](LICENSE)
+Aplikasi ini dilisensikan di bawah [MIT License](LICENSE). Lisensi dapat dilihat langsung di dalam aplikasi pada tab "License".
 
 ---
 

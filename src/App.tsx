@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-do
 import { Toaster } from '@/components/ui/sonner';
 import { Dashboard } from '@/pages/Dashboard';
 import { UsulanPage } from '@/pages/UsulanPage';
+import License from '@/pages/License';
 import { LayoutDashboard, FileText, Layers, Menu, Search, Bell, Settings, User, ChevronDown, Package, Box, Users, ArrowUpRight, FileBox, Shield, Key, Grid } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -18,6 +19,7 @@ function Sidebar({ isOpen, toggleSidebar }: { isOpen: boolean, toggleSidebar: ()
     { name: 'Hibah', path: '/hibah', icon: FileText },
     { name: 'Musrembang', path: '/musrembang', icon: Box },
     { name: 'Pokir', path: '/pokir', icon: Layers },
+    { name: 'License', path: '/license', icon: Shield },
   ];
 
   return (
@@ -37,7 +39,7 @@ function Sidebar({ isOpen, toggleSidebar }: { isOpen: boolean, toggleSidebar: ()
               to={item.path}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
                 isActive 
-                  ? 'bg-[#A6F4C5] text-black' 
+                  ? 'bg-[#A6F4C5] text-black dark:bg-[#A6F4C5] dark:text-black' 
                   : 'text-gray-400 hover:bg-white/10 hover:text-white'
               } ${!isOpen && 'justify-center'}`}
               title={!isOpen ? item.name : undefined}
@@ -114,6 +116,7 @@ export default function App() {
             <Route path="/hibah" element={<UsulanPage kategori="HIBAH" />} />
             <Route path="/musrembang" element={<UsulanPage kategori="Musrembang" />} />
             <Route path="/pokir" element={<UsulanPage kategori="POKIR" />} />
+            <Route path="/license" element={<License />} />
           </Routes>
         </Layout>
       </BrowserRouter>
