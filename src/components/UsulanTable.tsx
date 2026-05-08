@@ -341,9 +341,9 @@ export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row gap-4 justify-between">
+      <div className="flex flex-col xl:flex-row gap-4 justify-between">
         <div className="flex flex-wrap gap-2 flex-1">
-          <div className="relative flex-1 min-w-[200px] max-w-sm">
+          <div className="relative w-full sm:flex-1 sm:min-w-[200px] sm:max-w-sm">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Cari di semua kolom..."
@@ -352,45 +352,38 @@ export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          <Select value={status} onValueChange={handleStatusChange}>
-            <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Semua Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">Semua Status</SelectItem>
-              <SelectItem value="DRAFT">Draft</SelectItem>
-              <SelectItem value="DITERIMA">Diterima</SelectItem>
-              <SelectItem value="DITOLAK">Ditolak</SelectItem>
-              <SelectItem value="DIKEMBALIKAN">Dikembalikan</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={sortBy} onValueChange={(v) => { setSortBy(v); setPage(1); }}>
-            <SelectTrigger className="w-[160px]">
-              <SelectValue placeholder="Urutkan Berdasarkan" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="created_at">Waktu Dibuat</SelectItem>
-              <SelectItem value="tanggal_usul">Tanggal Usul</SelectItem>
-              <SelectItem value="pengusul">Pengusul</SelectItem>
-              <SelectItem value="anggaran">Anggaran</SelectItem>
-              <SelectItem value="status_validasi">Status Validasi</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={sortOrder} onValueChange={(v) => { setSortOrder(v); setPage(1); }}>
-            <SelectTrigger className="w-[110px]">
-              <SelectValue placeholder="Urutan" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="DESC">Menurun</SelectItem>
-              <SelectItem value="ASC">Menaik</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex gap-2 w-full sm:w-auto">
+            <Select value={status} onValueChange={handleStatusChange}>
+              <SelectTrigger className="flex-1 sm:w-[150px]">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">Semua Status</SelectItem>
+                <SelectItem value="DRAFT">Draft</SelectItem>
+                <SelectItem value="DITERIMA">Diterima</SelectItem>
+                <SelectItem value="DITOLAK">Ditolak</SelectItem>
+                <SelectItem value="DIKEMBALIKAN">Dikembalikan</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={sortBy} onValueChange={(v) => { setSortBy(v); setPage(1); }}>
+              <SelectTrigger className="flex-1 sm:w-[160px]">
+                <SelectValue placeholder="Urutkan" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="created_at">Waktu Dibuat</SelectItem>
+                <SelectItem value="tanggal_usul">Tanggal Usul</SelectItem>
+                <SelectItem value="pengusul">Pengusul</SelectItem>
+                <SelectItem value="anggaran">Anggaran</SelectItem>
+                <SelectItem value="status_validasi">Status Validasi</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {selectedIds.length > 0 && (
             <>
               <Select onValueChange={(val) => setBulkMoveData({ isOpen: true, targetCategory: val })} value="">
-                <SelectTrigger className="w-[180px] h-9" disabled={loading}>
+                <SelectTrigger className="w-full sm:w-[180px] h-9" disabled={loading}>
                   <SelectValue placeholder="Pindahkan ke..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -399,41 +392,43 @@ export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
                   {kategori !== 'Musrembang' && <SelectItem value="Musrembang">Musrembang</SelectItem>}
                 </SelectContent>
               </Select>
-              <Button variant="destructive" size="sm" onClick={() => setIsBulkDeleteModalOpen(true)} disabled={loading}>
-                <Trash2 className="h-4 w-4 mr-2" />
-                Hapus ({selectedIds.length})
+              <Button variant="destructive" size="sm" onClick={() => setIsBulkDeleteModalOpen(true)} disabled={loading} className="flex-1 sm:flex-none">
+                <Trash2 className="h-4 w-4 mr-1 md:mr-2" />
+                <span className="hidden xs:inline">Hapus</span> ({selectedIds.length})
               </Button>
             </>
           )}
-          <Button variant="outline" size="sm" onClick={handleExport} disabled={loading || total === 0} className="text-green-700 dark:text-green-400 border-green-200 dark:border-green-900/50 hover:bg-green-50 dark:hover:bg-green-900/30">
-            <Download className="h-4 w-4 mr-2" />
-            Export Excel
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => setIsClearModalOpen(true)} disabled={loading || total === 0} className="text-red-600 dark:text-red-400 border-red-200 dark:border-red-900/50 hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-700 dark:hover:text-red-300">
-            <AlertTriangle className="h-4 w-4 mr-2" />
-            Clear All Data
-          </Button>
-          <div className="text-sm text-muted-foreground ml-2">
-            Total: {total} data
+          <div className="flex gap-2 w-full sm:w-auto">
+            <Button variant="outline" size="sm" onClick={handleExport} disabled={loading || total === 0} className="flex-1 sm:flex-none text-green-700 dark:text-green-400 border-green-200 dark:border-green-900/50 hover:bg-green-50 dark:hover:bg-green-900/30">
+              <Download className="h-4 w-4 mr-2" />
+              Export
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => setIsClearModalOpen(true)} disabled={loading || total === 0} className="flex-1 sm:flex-none text-red-600 dark:text-red-400 border-red-200 dark:border-red-900/50 hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-700">
+              <AlertTriangle className="h-4 w-4 mr-2" />
+              Clear All
+            </Button>
           </div>
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground bg-muted/50 p-3 rounded-lg border border-border">
-        <span className="font-semibold text-foreground flex items-center gap-1.5">
-          <AlertCircle className="w-4 h-4 text-blue-500" />
-          Keterangan Warna Baris:
+      <div className="flex flex-wrap items-center gap-2 md:gap-4 text-[10px] md:text-xs text-muted-foreground bg-muted/50 p-3 rounded-lg border border-border overflow-x-auto whitespace-nowrap scrollbar-hide">
+        <span className="font-semibold text-foreground flex items-center gap-1.5 shrink-0">
+          <AlertCircle className="w-3.5 h-3.5 text-blue-500" />
+          Status Baris:
         </span>
-        <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-green-100 border border-green-300 dark:bg-green-900/40 dark:border-green-700"></div> Diterima</div>
-        <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-rose-900 border border-rose-950 dark:bg-rose-800 dark:border-rose-900"></div> Ditolak</div>
-        <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-orange-100 border border-orange-300 dark:bg-orange-900/40 dark:border-orange-700"></div> Dikembalikan</div>
-        <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-background border border-border"></div> Draft</div>
+        <div className="flex items-center gap-1.5 shrink-0"><div className="w-2.5 h-2.5 rounded-full bg-green-100 border border-green-300 dark:bg-green-900/40 dark:border-green-700"></div> Diterima</div>
+        <div className="flex items-center gap-1.5 shrink-0"><div className="w-2.5 h-2.5 rounded-full bg-rose-900 border border-rose-950 dark:bg-rose-800 dark:border-rose-900"></div> Ditolak</div>
+        <div className="flex items-center gap-1.5 shrink-0"><div className="w-2.5 h-2.5 rounded-full bg-orange-100 border border-orange-300 dark:bg-orange-900/40 dark:border-orange-700"></div> Balik</div>
+        <div className="flex items-center gap-1.5 shrink-0"><div className="w-2.5 h-2.5 rounded-full bg-background border border-border"></div> Draft</div>
+        <div className="ml-auto text-[10px] italic flex items-center gap-1 opacity-60">
+          <ArrowLeftRight className="w-3 h-3" /> Geser tabel untuk lihat lebih banyak
+        </div>
       </div>
 
-      <div className="border rounded-md overflow-hidden bg-card">
-        <div className="overflow-x-auto">
-          <Table className="w-full">
-            <TableHeader className="bg-muted">
+      <div className="border rounded-md overflow-hidden bg-card relative">
+        <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent">
+          <Table className="w-full text-xs">
+            <TableHeader className="bg-muted sticky top-0 z-10 shadow-sm">
               <TableRow>
                 <TableHead className="w-[40px] text-center whitespace-nowrap">
                   <input 
@@ -554,10 +549,10 @@ export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
       </div>
 
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex items-center space-x-2">
-          <p className="text-sm text-muted-foreground">Baris per halaman</p>
+        <div className="flex items-center space-x-2 text-xs md:text-sm">
+          <p className="text-muted-foreground hidden xs:block">Baris per halaman</p>
           <Select value={limit.toString()} onValueChange={(v) => { setLimit(Number(v)); setPage(1); }}>
-            <SelectTrigger className="h-8 w-[80px]">
+            <SelectTrigger className="h-8 w-[70px] md:w-[80px]">
               <SelectValue placeholder={limit.toString()} />
             </SelectTrigger>
             <SelectContent side="top">
@@ -569,28 +564,31 @@ export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
               <SelectItem value="-1">Semua</SelectItem>
             </SelectContent>
           </Select>
+          <span className="text-muted-foreground border-l pl-2">Total: {total}</span>
         </div>
-        <div className="flex items-center space-x-4">
-          <div className="text-sm text-muted-foreground">
-            Halaman {page} dari {totalPages || 1}
+        <div className="flex items-center space-x-2 md:space-x-4">
+          <div className="text-xs md:text-sm text-muted-foreground whitespace-nowrap">
+            Hal {page} / {totalPages || 1}
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1 md:space-x-2">
             <Button
               variant="outline"
               size="sm"
+              className="h-8 px-2 md:px-3"
               onClick={() => setPage(p => Math.max(1, p - 1))}
               disabled={page === 1 || loading}
             >
               <ChevronLeft className="h-4 w-4" />
-              Sebelumnya
+              <span className="hidden md:inline ml-1">Sebelumnya</span>
             </Button>
             <Button
               variant="outline"
               size="sm"
+              className="h-8 px-2 md:px-3"
               onClick={() => setPage(p => Math.min(totalPages, p + 1))}
               disabled={page === totalPages || totalPages === 0 || loading}
             >
-              Selanjutnya
+              <span className="hidden md:inline mr-1">Selanjutnya</span>
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>

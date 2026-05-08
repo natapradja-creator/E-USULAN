@@ -22,23 +22,23 @@ export function UsulanPage({ kategori }: UsulanPageProps) {
     : `Kelola dan validasi usulan ${kategori.toLowerCase()} dari Excel.`;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 max-w-[100vw] overflow-x-hidden">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
-          <p className="text-muted-foreground mt-1">
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{title}</h1>
+          <p className="text-xs md:text-sm text-muted-foreground mt-1">
             {description}
           </p>
         </div>
         {kategori !== 'ALL' && (
-          <Button onClick={() => setIsImportOpen(true)} className="gap-2">
+          <Button onClick={() => setIsImportOpen(true)} className="gap-2 w-full sm:w-auto h-9 text-sm">
             <Upload className="h-4 w-4" />
             Import Excel
           </Button>
         )}
       </div>
 
-      <div className="bg-card text-card-foreground p-6 rounded-lg border border-border shadow-sm">
+      <div className="bg-card text-card-foreground p-3 md:p-6 rounded-lg border border-border shadow-sm overflow-hidden">
         <UsulanTable key={kategori} kategori={kategori} refreshTrigger={refreshTrigger} />
       </div>
 

@@ -6,17 +6,17 @@ import { Link } from 'react-router-dom';
 
 function StatCard({ title, value, icon: Icon, colorClass, linkTo }: { title: string, value: number | string, icon: any, colorClass: string, linkTo: string }) {
   return (
-    <div className={`rounded-3xl p-6 flex flex-col justify-between h-40 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl ${colorClass}`}>
+    <div className={`rounded-3xl p-5 md:p-6 flex flex-col justify-between h-36 md:h-40 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${colorClass}`}>
       <div className="flex justify-between items-start">
-        <h3 className="font-medium text-foreground text-opacity-90">{title}</h3>
-        <div className="p-2 bg-background/40 dark:bg-black/20 rounded-full">
-          <Icon className="h-5 w-5 text-foreground" />
+        <h3 className="text-sm md:font-medium text-foreground text-opacity-90 leading-tight">{title}</h3>
+        <div className="p-1.5 md:p-2 bg-background/40 dark:bg-black/20 rounded-full">
+          <Icon className="h-4 w-4 md:h-5 md:w-5 text-foreground" />
         </div>
       </div>
       <div className="flex justify-between items-end">
-        <div className="text-5xl font-semibold text-foreground tracking-tight">{value}</div>
-        <Link to={linkTo} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center transition-colors">
-          View All <ArrowRight className="ml-1 h-4 w-4" />
+        <div className="text-3xl md:text-5xl font-semibold text-foreground tracking-tight">{value}</div>
+        <Link to={linkTo} className="text-[10px] md:text-sm font-medium text-muted-foreground hover:text-foreground flex items-center transition-colors">
+          View <ArrowRight className="ml-1 h-3 w-3 md:h-4 md:w-4" />
         </Link>
       </div>
     </div>
@@ -30,29 +30,29 @@ function DetailedStatCard({ title, value, breakdown, icon: Icon, colorClass, lin
   const musrembangPct = total === 0 ? 0 : (breakdown.musrembang / total) * 100;
 
   return (
-    <div className={`rounded-3xl p-6 flex flex-col justify-between h-auto min-h-[12rem] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl ${colorClass}`}>
+    <div className={`rounded-3xl p-5 md:p-6 flex flex-col justify-between h-auto min-h-[10rem] md:min-h-[12rem] transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${colorClass}`}>
       <div className="flex justify-between items-start mb-2">
-        <h3 className="font-medium text-foreground text-opacity-90">{title}</h3>
-        <div className="p-2 bg-background/40 dark:bg-black/20 rounded-full">
-          <Icon className="h-5 w-5 text-foreground" />
+        <h3 className="text-sm md:font-medium text-foreground text-opacity-90 leading-tight">{title}</h3>
+        <div className="p-1.5 md:p-2 bg-background/40 dark:bg-black/20 rounded-full">
+          <Icon className="h-4 w-4 md:h-5 md:w-5 text-foreground" />
         </div>
       </div>
       <div className="flex justify-between items-end mb-4">
-        <div className="text-5xl font-semibold text-foreground tracking-tight">{value}</div>
-        <Link to={linkTo} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center transition-colors">
-          View All <ArrowRight className="ml-1 h-4 w-4" />
+        <div className="text-3xl md:text-5xl font-semibold text-foreground tracking-tight">{value}</div>
+        <Link to={linkTo} className="text-[10px] md:text-sm font-medium text-muted-foreground hover:text-foreground flex items-center transition-colors">
+          View <ArrowRight className="ml-1 h-3 w-3 md:h-4 md:w-4" />
         </Link>
       </div>
       <div className="space-y-3 mt-auto">
-        <div className="h-2.5 w-full bg-background/50 dark:bg-black/20 rounded-full flex overflow-hidden">
+        <div className="h-2 w-full bg-background/50 dark:bg-black/20 rounded-full flex overflow-hidden">
           <div style={{ width: `${hibahPct}%` }} className="bg-blue-500" title={`Hibah: ${breakdown.hibah}`} />
           <div style={{ width: `${pokirPct}%` }} className="bg-purple-500" title={`Pokir: ${breakdown.pokir}`} />
           <div style={{ width: `${musrembangPct}%` }} className="bg-orange-500" title={`Musrembang: ${breakdown.musrembang}`} />
         </div>
-        <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-foreground text-opacity-80">
-          <div className="flex items-center whitespace-nowrap"><span className="w-2 h-2 rounded-full mr-1.5 bg-blue-500"></span>Hibah ({breakdown.hibah})</div>
-          <div className="flex items-center whitespace-nowrap"><span className="w-2 h-2 rounded-full mr-1.5 bg-purple-500"></span>Pokir ({breakdown.pokir})</div>
-          <div className="flex items-center whitespace-nowrap"><span className="w-2 h-2 rounded-full mr-1.5 bg-orange-500"></span>Musrembang ({breakdown.musrembang})</div>
+        <div className="flex flex-wrap gap-x-2 md:gap-x-3 gap-y-1 text-[10px] md:text-xs text-foreground text-opacity-80">
+          <div className="flex items-center whitespace-nowrap"><span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full mr-1 md:mr-1.5 bg-blue-500"></span>Hibah ({breakdown.hibah})</div>
+          <div className="flex items-center whitespace-nowrap"><span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full mr-1 md:mr-1.5 bg-purple-500"></span>Pokir ({breakdown.pokir})</div>
+          <div className="flex items-center whitespace-nowrap"><span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full mr-1 md:mr-1.5 bg-orange-500"></span>Musrembang ({breakdown.musrembang})</div>
         </div>
       </div>
     </div>
