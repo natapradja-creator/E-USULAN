@@ -78,6 +78,13 @@ app.get('/api/init-db', async (req, res) => {
       }
     }
 
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS app_settings (
+        key TEXT PRIMARY KEY,
+        value TEXT
+      )
+    `);
+
     res.json({ status: 'ok', message: 'Database initialized successfully' });
   } catch (error: any) {
     console.error('Database initialization error:', error);
@@ -449,6 +456,58 @@ app.delete('/api/usulan/clear', async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Failed to clear data' });
+  }
+});
+
+// Settings Endpoints
+
+// Check if PIN is set
+app.get('/api/settings/pin-status', async (req, res) => {
+  try {
+    const { rows } = await pool.query("SELECT value FROM app_settings WHERE key = 'app_pin'");
+    const isSet = rows.length > 0 && rows[0].value && rows[0].value.length > 0;
+    res.json({ isSet });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Verify PIN
+app.post('/api/settings/verify-pin', async (req, res) => {
+  const { pin } = req.body;
+  try {
+    const { rows } = await pool.query("SELECT value FROM app_settings WHERE key = 'app_pin'");
+    if (rows.length === 0 || !rows[0].value) {
+      return res.json({ valid: true }); // No PIN set
+    }
+    const isValid = rows[0].value === pin;
+    res.json({ valid: isValid });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Set PIN
+app.post('/api/settings/set-pin', async (req, res) => {
+  const { pin, oldPin } = req.body;
+  try {
+    // If PIN is already set, require old PIN to change it
+    const { rows } = await pool.query("SELECT value FROM app_settings WHERE key = 'app_pin'");
+    if (rows.length > 0 && rows[0].value && rows[0].value.length > 0) {
+      if (rows[0].value !== oldPin) {
+        return res.status(401).json({ error: 'PIN lama tidak valid' });
+      }
+    }
+
+    await pool.query(`
+      INSERT INTO app_settings (key, value) 
+      VALUES ('app_pin', $1) 
+      ON CONFLICT (key) DO UPDATE SET value = $1
+    `, [pin]);
+    
+    res.json({ success: true });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
   }
 });
 

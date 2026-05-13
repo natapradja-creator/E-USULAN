@@ -9,6 +9,9 @@ import { Button } from '@/components/ui/button';
 
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { SecurityProvider, useSecurity } from '@/context/SecurityContext';
+import { LockScreen } from '@/components/LockScreen';
+import { SettingsModal } from '@/components/SettingsModal';
 
 function Sidebar({ isOpen, toggleSidebar, isMobile }: { isOpen: boolean, toggleSidebar: () => void, isMobile: boolean }) {
   const location = useLocation();
@@ -98,7 +101,7 @@ function Sidebar({ isOpen, toggleSidebar, isMobile }: { isOpen: boolean, toggleS
   );
 }
 
-function TopNav({ toggleSidebar, isMobile }: { toggleSidebar: () => void, isMobile: boolean }) {
+function TopNav({ toggleSidebar, isMobile, onSettingsClick }: { toggleSidebar: () => void, isMobile: boolean, onSettingsClick: () => void }) {
   return (
     <header className="h-16 flex items-center justify-between lg:justify-end px-4 md:px-8 bg-background border-b border-border sticky top-0 z-30">
       {isMobile && (
@@ -122,7 +125,10 @@ function TopNav({ toggleSidebar, isMobile }: { toggleSidebar: () => void, isMobi
           <img src="https://i.pravatar.cc/150?u=a042581f4e29026704d" alt="User" className="w-full h-full object-cover" />
         </div>
         {!isMobile && (
-          <button className="p-2 text-muted-foreground hover:bg-accent rounded-full transition-colors">
+          <button 
+            onClick={onSettingsClick} 
+            className="p-2 text-muted-foreground hover:bg-accent rounded-full transition-colors"
+          >
             <Settings className="h-5 w-5" />
           </button>
         )}
@@ -134,6 +140,8 @@ function TopNav({ toggleSidebar, isMobile }: { toggleSidebar: () => void, isMobi
 function Layout({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const { isLocked } = useSecurity();
 
   useEffect(() => {
     const checkMobile = () => {
@@ -150,13 +158,18 @@ function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen bg-background text-foreground font-sans selection:bg-[#A6F4C5]/30">
+      {isLocked && <LockScreen />}
       <Sidebar 
         isOpen={isSidebarOpen} 
         toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} 
         isMobile={isMobile}
       />
       <div className="flex-1 flex flex-col min-w-0 max-h-screen overflow-hidden">
-        <TopNav toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} isMobile={isMobile} />
+        <TopNav 
+          toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} 
+          isMobile={isMobile} 
+          onSettingsClick={() => setIsSettingsOpen(true)}
+        />
         <main className="flex-1 p-4 md:p-8 overflow-y-auto bg-muted/5">
           {children}
         </main>
@@ -165,6 +178,7 @@ function Layout({ children }: { children: React.ReactNode }) {
         </footer>
       </div>
       <Toaster position="top-right" richColors />
+      <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
     </div>
   );
 }
@@ -172,18 +186,20 @@ function Layout({ children }: { children: React.ReactNode }) {
 export default function App() {
   return (
     <ThemeProvider defaultTheme="light" storageKey="sistem-usulan-theme">
-      <BrowserRouter>
-        <Layout>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/usulan" element={<UsulanPage kategori="ALL" />} />
-            <Route path="/hibah" element={<UsulanPage kategori="HIBAH" />} />
-            <Route path="/musrembang" element={<UsulanPage kategori="Musrembang" />} />
-            <Route path="/pokir" element={<UsulanPage kategori="POKIR" />} />
-            <Route path="/license" element={<License />} />
-          </Routes>
-        </Layout>
-      </BrowserRouter>
+      <SecurityProvider>
+        <BrowserRouter>
+          <Layout>
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/usulan" element={<UsulanPage kategori="ALL" />} />
+              <Route path="/hibah" element={<UsulanPage kategori="HIBAH" />} />
+              <Route path="/musrembang" element={<UsulanPage kategori="Musrembang" />} />
+              <Route path="/pokir" element={<UsulanPage kategori="POKIR" />} />
+              <Route path="/license" element={<License />} />
+            </Routes>
+          </Layout>
+        </BrowserRouter>
+      </SecurityProvider>
     </ThemeProvider>
   );
 }
