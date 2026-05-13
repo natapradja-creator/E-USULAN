@@ -504,27 +504,27 @@ app.get('/api/settings/lock-status', async (req, res) => {
     await ensureSettingsTable();
     const { rows: pinRows } = await pool.query("SELECT value FROM app_settings WHERE key = 'app_pin'");
     const { rows: statusRows } = await pool.query("SELECT value FROM app_settings WHERE key = 'app_lock_status'");
-    
-    // Jika belum ada status kunci, kita anggap false (terbuka)
-    const isGlobalLocked = statusRows.length > 0 ? statusRows[0].value === 'true' : false;
+    const { rows: fullLockRows } = await pool.query("SELECT value FROM app_settings WHERE key = 'app_full_lock_status'");
     
     res.json({ 
       hasPin: pinRows.length > 0 && !!pinRows[0].value,
-      isGlobalLocked: isGlobalLocked
+      isGlobalLocked: statusRows.length > 0 ? statusRows[0].value === 'true' : false,
+      isFullLocked: fullLockRows.length > 0 ? fullLockRows[0].value === 'true' : false
     });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// Toggle global lock
+// Toggle global/full lock
 app.post('/api/settings/toggle-lock', async (req, res) => {
-  const { pin, locked } = req.body;
+  const { pin, locked, type } = req.body; // type can be 'global' or 'full'
+  const key = type === 'full' ? 'app_full_lock_status' : 'app_lock_status';
+  
   try {
     await ensureSettingsTable();
     const { rows } = await pool.query("SELECT value FROM app_settings WHERE key = 'app_pin'");
     
-    // Always require PIN to change global lock status if PIN exists
     if (rows.length > 0 && rows[0].value) {
       if (rows[0].value !== pin) {
         return res.status(401).json({ error: 'PIN tidak valid' });
@@ -533,11 +533,11 @@ app.post('/api/settings/toggle-lock', async (req, res) => {
 
     await pool.query(`
       INSERT INTO app_settings (key, value) 
-      VALUES ('app_lock_status', $1) 
-      ON CONFLICT (key) DO UPDATE SET value = $1
-    `, [locked ? 'true' : 'false']);
+      VALUES ($1, $2) 
+      ON CONFLICT (key) DO UPDATE SET value = $2
+    `, [key, locked ? 'true' : 'false']);
     
-    res.json({ success: true, isGlobalLocked: locked });
+    res.json({ success: true, locked: locked });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }

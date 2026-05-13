@@ -12,7 +12,12 @@ interface SettingsModalProps {
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
-  const { hasPin, setPin, lockSession, isGlobalLocked, toggleGlobalLock, sessionUnlocked } = useSecurity();
+  const { 
+    hasPin, setPin, lockSession, 
+    isGlobalLocked, toggleGlobalLock, 
+    isFullLocked, toggleFullLock,
+    sessionUnlocked 
+  } = useSecurity();
   const [currentPin, setCurrentPin] = useState('');
   const [newPin, setNewPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
@@ -54,6 +59,23 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     }
   };
 
+  const handleToggleFull = async () => {
+    if (!hasPin) {
+      toast.error('Atur PIN terlebih dahulu');
+      return;
+    }
+    
+    const pin = prompt('Masukkan PIN untuk mengonfirmasi perubahan status kunci privat:');
+    if (pin === null) return;
+
+    setLoading(true);
+    try {
+      await toggleFullLock(pin, !isFullLocked);
+    } catch (err) {} finally {
+      setLoading(false);
+    }
+  };
+
   const handleRemovePin = async () => {
     if (!window.confirm('Apakah Anda yakin ingin menghapus PIN keamanan? Aplikasi akan terbuka untuk umum.')) return;
     
@@ -81,35 +103,65 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
         </div>
 
         <div className="p-6 space-y-6">
-          {/* Global Lock Controls */}
-          <div className="p-4 rounded-xl border bg-muted/20 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Lock className={`h-4 w-4 ${isGlobalLocked ? 'text-red-500' : 'text-green-500'}`} />
-                <span className="font-semibold text-sm">Status Kunci Global</span>
+          {/* Lock Controls */}
+          <div className="space-y-3">
+            {/* Global Read-Only Lock */}
+            <div className="p-4 rounded-xl border bg-muted/20 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Lock className={`h-4 w-4 ${isGlobalLocked ? 'text-orange-500' : 'text-green-500'}`} />
+                  <span className="font-semibold text-sm">Mode Read-Only</span>
+                </div>
+                <div className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${isGlobalLocked ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-700'}`}>
+                  {isGlobalLocked ? 'AKTIF' : 'NONAKTIF'}
+                </div>
               </div>
-              <div className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${isGlobalLocked ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
-                {isGlobalLocked ? 'TERKUNCI' : 'TERBUKA'}
-              </div>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                Data hanya dapat dilihat tanpa login PIN. Perubahan data dibatasi untuk umum.
+              </p>
+              <Button 
+                variant={isGlobalLocked ? "default" : "outline"} 
+                size="sm" 
+                onClick={handleToggleGlobal}
+                disabled={loading}
+                className="w-full gap-2 h-9"
+              >
+                {isGlobalLocked ? (
+                  <><Unlock className="h-4 w-4" /> Buka Read-Only</>
+                ) : (
+                  <><Lock className="h-4 w-4" /> Aktifkan Read-Only</>
+                )}
+              </Button>
             </div>
-            <p className="text-xs text-muted-foreground">
-              {isGlobalLocked 
-                ? 'Aplikasi dalam mode Read-Only. Perubahan data dibatasi.' 
-                : 'Aplikasi terbuka untuk umum. Semua aksi diizinkan.'}
-            </p>
-            <Button 
-              variant={isGlobalLocked ? "default" : "outline"} 
-              size="sm" 
-              onClick={handleToggleGlobal}
-              disabled={loading}
-              className="w-full gap-2 h-9"
-            >
-              {isGlobalLocked ? (
-                <><Unlock className="h-4 w-4" /> Buka Kunci Global</>
-              ) : (
-                <><Lock className="h-4 w-4" /> Aktifkan Kunci Global</>
-              )}
-            </Button>
+
+            {/* Full Access Lock */}
+            <div className="p-4 rounded-xl border bg-muted/20 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className={`h-4 w-4 ${isFullLocked ? 'text-red-500' : 'text-blue-500'}`} />
+                  <span className="font-semibold text-sm">Mode Privat (Kunci Total)</span>
+                </div>
+                <div className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${isFullLocked ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`}>
+                  {isFullLocked ? 'TERKUNCI' : 'PUBLIK'}
+                </div>
+              </div>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                Wajibkan PIN segera setelah aplikasi dibuka. Seluruh data disembunyikan dari publik.
+              </p>
+              <Button 
+                variant={isFullLocked ? "destructive" : "outline"} 
+                size="sm" 
+                onClick={handleToggleFull}
+                disabled={loading}
+                className="w-full gap-2 h-9"
+              >
+                {isFullLocked ? (
+                  <><Unlock className="h-4 w-4" /> Buka Kunci Privat</>
+                ) : (
+                  <><Lock className="h-4 w-4" /> Aktifkan Kunci Privat</>
+                )}
+              </Button>
+            </div>
           </div>
 
           <div className="space-y-4 pt-2">

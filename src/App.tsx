@@ -153,7 +153,7 @@ function Layout({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const { isGlobalLocked, sessionUnlocked } = useSecurity();
+  const { isGlobalLocked, isFullLocked, sessionUnlocked } = useSecurity();
 
   useEffect(() => {
     const checkMobile = () => {
@@ -169,7 +169,9 @@ function Layout({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <div className="flex min-h-screen bg-background text-foreground font-sans selection:bg-[#A6F4C5]/30">
+    <div className="flex min-h-screen bg-background text-foreground font-sans selection:bg-[#A6F4C5]/30 relative">
+      {isFullLocked && !sessionUnlocked && <LockScreen />}
+      
       <Sidebar 
         isOpen={isSidebarOpen} 
         toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} 
@@ -177,8 +179,13 @@ function Layout({ children }: { children: React.ReactNode }) {
       />
       <div className="flex-1 flex flex-col min-w-0 max-h-screen overflow-hidden">
         {isGlobalLocked && !sessionUnlocked && (
-          <div className="bg-red-600 text-white text-[10px] md:text-xs py-1 px-4 text-center font-bold uppercase tracking-wider animate-pulse z-[60]">
-            Mode Terbatas (Read-Only) - Silahkan buka kunci untuk melakukan perubahan data
+          <div className="bg-orange-500 text-white text-[10px] md:text-xs py-1 px-4 text-center font-bold uppercase tracking-wider animate-pulse z-[60]">
+            Mode Terbatas (Read-Only) - Silahkan buka kunci (Gerigi) untuk melakukan perubahan data
+          </div>
+        )}
+        {isFullLocked && sessionUnlocked && (
+          <div className="bg-red-600 text-white text-[10px] md:text-xs py-1 px-4 text-center font-bold uppercase tracking-wider z-[60]">
+            Aplikasi sedang dalam Mode Privat
           </div>
         )}
         <TopNav 

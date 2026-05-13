@@ -3,11 +3,13 @@ import { toast } from 'sonner';
 
 interface SecurityContextType {
   isGlobalLocked: boolean;
+  isFullLocked: boolean;
   sessionUnlocked: boolean;
   hasPin: boolean;
   unlock: (pin: string) => Promise<boolean>;
   lockSession: () => void;
   toggleGlobalLock: (pin: string, locked: boolean) => Promise<void>;
+  toggleFullLock: (pin: string, locked: boolean) => Promise<void>;
   setPin: (newPin: string, oldPin?: string) => Promise<void>;
   checkPinStatus: () => Promise<void>;
   loading: boolean;
@@ -18,6 +20,7 @@ const SecurityContext = createContext<SecurityContextType | undefined>(undefined
 
 export const SecurityProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isGlobalLocked, setIsGlobalLocked] = useState(false);
+  const [isFullLocked, setIsFullLocked] = useState(false);
   const [sessionUnlocked, setSessionUnlocked] = useState(false);
   const [hasPin, setHasPin] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -29,6 +32,7 @@ export const SecurityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         const data = await res.json();
         setHasPin(data.hasPin);
         setIsGlobalLocked(data.isGlobalLocked);
+        setIsFullLocked(data.isFullLocked);
         
         // Restore session from sessionStorage
         const savedSession = sessionStorage.getItem('app_unlocked');
@@ -83,7 +87,7 @@ export const SecurityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       const res = await fetch('/api/settings/toggle-lock', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pin, locked }),
+        body: JSON.stringify({ pin, locked, type: 'global' }),
       });
       
       if (!res.ok) {
@@ -91,11 +95,35 @@ export const SecurityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         throw new Error(data.error || 'Gagal mengubah status kunci');
       }
       
-      const data = await res.json();
-      setIsGlobalLocked(data.isGlobalLocked);
-      toast.success(locked ? 'Aplikasi telah DIKUNCI secara global' : 'Aplikasi telah DIBUKA secara global');
+      setIsGlobalLocked(locked);
+      toast.info(locked ? 'Mode Read-Only Aktif' : 'Mode Read-Only Nonaktif');
       
-      // If we just locked it globally, we should also unlock our session if pin was correct
+      if (!locked) {
+        setSessionUnlocked(true);
+        sessionStorage.setItem('app_unlocked', 'true');
+      }
+    } catch (error: any) {
+      toast.error(error.message);
+      throw error;
+    }
+  };
+
+  const toggleFullLock = async (pin: string, locked: boolean) => {
+    try {
+      const res = await fetch('/api/settings/toggle-lock', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pin, locked, type: 'full' }),
+      });
+      
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Gagal mengubah status kunci');
+      }
+      
+      setIsFullLocked(locked);
+      toast.info(locked ? 'Mode Privat Aktif' : 'Mode Privat Nonaktif');
+      
       if (!locked) {
         setSessionUnlocked(true);
         sessionStorage.setItem('app_unlocked', 'true');
@@ -134,11 +162,13 @@ export const SecurityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   return (
     <SecurityContext.Provider value={{ 
       isGlobalLocked, 
+      isFullLocked,
       sessionUnlocked, 
       hasPin, 
       unlock, 
       lockSession, 
       toggleGlobalLock, 
+      toggleFullLock,
       setPin, 
       checkPinStatus, 
       loading,
