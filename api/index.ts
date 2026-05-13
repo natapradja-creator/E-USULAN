@@ -461,9 +461,19 @@ app.delete('/api/usulan/clear', async (req, res) => {
 
 // Settings Endpoints
 
+async function ensureSettingsTable() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS app_settings (
+      key TEXT PRIMARY KEY,
+      value TEXT
+    )
+  `);
+}
+
 // Check if PIN is set
 app.get('/api/settings/pin-status', async (req, res) => {
   try {
+    await ensureSettingsTable();
     const { rows } = await pool.query("SELECT value FROM app_settings WHERE key = 'app_pin'");
     const isSet = rows.length > 0 && rows[0].value && rows[0].value.length > 0;
     res.json({ isSet });
@@ -476,6 +486,7 @@ app.get('/api/settings/pin-status', async (req, res) => {
 app.post('/api/settings/verify-pin', async (req, res) => {
   const { pin } = req.body;
   try {
+    await ensureSettingsTable();
     const { rows } = await pool.query("SELECT value FROM app_settings WHERE key = 'app_pin'");
     if (rows.length === 0 || !rows[0].value) {
       return res.json({ valid: true }); // No PIN set
@@ -491,6 +502,7 @@ app.post('/api/settings/verify-pin', async (req, res) => {
 app.post('/api/settings/set-pin', async (req, res) => {
   const { pin, oldPin } = req.body;
   try {
+    await ensureSettingsTable();
     // If PIN is already set, require old PIN to change it
     const { rows } = await pool.query("SELECT value FROM app_settings WHERE key = 'app_pin'");
     if (rows.length > 0 && rows[0].value && rows[0].value.length > 0) {
