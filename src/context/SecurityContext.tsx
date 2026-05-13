@@ -2,34 +2,42 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from 'sonner';
 
 interface SecurityContextType {
-  isLocked: boolean;
+  isGlobalLocked: boolean;
+  sessionUnlocked: boolean;
   hasPin: boolean;
   unlock: (pin: string) => Promise<boolean>;
-  lock: () => void;
+  lockSession: () => void;
+  toggleGlobalLock: (pin: string, locked: boolean) => Promise<void>;
   setPin: (newPin: string, oldPin?: string) => Promise<void>;
   checkPinStatus: () => Promise<void>;
   loading: boolean;
+  canWrite: boolean;
 }
 
 const SecurityContext = createContext<SecurityContextType | undefined>(undefined);
 
 export const SecurityProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [isLocked, setIsLocked] = useState(false);
+  const [isGlobalLocked, setIsGlobalLocked] = useState(false);
+  const [sessionUnlocked, setSessionUnlocked] = useState(false);
   const [hasPin, setHasPin] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const checkPinStatus = async () => {
     try {
-      const res = await fetch('/api/settings/pin-status');
-      const data = await res.json();
-      setHasPin(data.isSet);
-      
-      // If PIN is set and session was just started, lock the app
-      if (data.isSet && !sessionStorage.getItem('app_unlocked')) {
-        setIsLocked(true);
+      const res = await fetch('/api/settings/lock-status');
+      if (res.ok) {
+        const data = await res.json();
+        setHasPin(data.hasPin);
+        setIsGlobalLocked(data.isGlobalLocked);
+        
+        // Restore session from sessionStorage
+        const savedSession = sessionStorage.getItem('app_unlocked');
+        if (savedSession === 'true') {
+          setSessionUnlocked(true);
+        }
       }
     } catch (error) {
-      console.error('Failed to check PIN status:', error);
+      console.error('Failed to check lock status:', error);
     } finally {
       setLoading(false);
     }
@@ -37,6 +45,10 @@ export const SecurityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   useEffect(() => {
     checkPinStatus();
+    
+    // Poll for global lock status changes every 30 seconds for live sync
+    const interval = setInterval(checkPinStatus, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   const unlock = async (pin: string) => {
@@ -46,11 +58,13 @@ export const SecurityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pin }),
       });
-      const data = await res.json();
-      if (data.valid) {
-        setIsLocked(false);
-        sessionStorage.setItem('app_unlocked', 'true');
-        return true;
+      if (res.ok) {
+        const data = await res.json();
+        if (data.valid) {
+          setSessionUnlocked(true);
+          sessionStorage.setItem('app_unlocked', 'true');
+          return true;
+        }
       }
       return false;
     } catch (error) {
@@ -59,9 +73,37 @@ export const SecurityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
-  const lock = () => {
-    setIsLocked(true);
+  const lockSession = () => {
+    setSessionUnlocked(false);
     sessionStorage.removeItem('app_unlocked');
+  };
+
+  const toggleGlobalLock = async (pin: string, locked: boolean) => {
+    try {
+      const res = await fetch('/api/settings/toggle-lock', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pin, locked }),
+      });
+      
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Gagal mengubah status kunci');
+      }
+      
+      const data = await res.json();
+      setIsGlobalLocked(data.isGlobalLocked);
+      toast.success(locked ? 'Aplikasi telah DIKUNCI secara global' : 'Aplikasi telah DIBUKA secara global');
+      
+      // If we just locked it globally, we should also unlock our session if pin was correct
+      if (!locked) {
+        setSessionUnlocked(true);
+        sessionStorage.setItem('app_unlocked', 'true');
+      }
+    } catch (error: any) {
+      toast.error(error.message);
+      throw error;
+    }
   };
 
   const setPin = async (newPin: string, oldPin?: string) => {
@@ -86,8 +128,22 @@ export const SecurityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
+  // Logic: Can write if NOT globally locked OR session is already unlocked with PIN
+  const canWrite = !isGlobalLocked || sessionUnlocked;
+
   return (
-    <SecurityContext.Provider value={{ isLocked, hasPin, unlock, lock, setPin, checkPinStatus, loading }}>
+    <SecurityContext.Provider value={{ 
+      isGlobalLocked, 
+      sessionUnlocked, 
+      hasPin, 
+      unlock, 
+      lockSession, 
+      toggleGlobalLock, 
+      setPin, 
+      checkPinStatus, 
+      loading,
+      canWrite
+    }}>
       {children}
     </SecurityContext.Provider>
   );

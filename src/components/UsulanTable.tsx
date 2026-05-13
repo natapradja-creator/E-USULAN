@@ -11,6 +11,7 @@ import { ValidationModal } from './ValidationModal';
 import { Search, ChevronLeft, ChevronRight, FileText, Trash2, AlertTriangle, Loader2, CheckCircle, XCircle, AlertCircle, Clock, Download, ArrowLeftRight } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+import { useSecurity } from '@/context/SecurityContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 
 import { CircularProgress } from '@/components/ui/circular-progress';
@@ -68,6 +69,7 @@ const ResizableHeader = ({
 
 export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { canWrite } = useSecurity();
   const initialStatus = searchParams.get('status') || 'ALL';
 
   const [data, setData] = useState<any[]>([]);
@@ -380,7 +382,7 @@ export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          {selectedIds.length > 0 && (
+          {selectedIds.length > 0 && canWrite && (
             <>
               <Select onValueChange={(val) => setBulkMoveData({ isOpen: true, targetCategory: val })} value="">
                 <SelectTrigger className="w-full sm:w-[180px] h-9" disabled={loading}>
@@ -403,10 +405,12 @@ export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
               <Download className="h-4 w-4 mr-2" />
               Export
             </Button>
-            <Button variant="outline" size="sm" onClick={() => setIsClearModalOpen(true)} disabled={loading || total === 0} className="flex-1 sm:flex-none text-red-600 dark:text-red-400 border-red-200 dark:border-red-900/50 hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-700">
-              <AlertTriangle className="h-4 w-4 mr-2" />
-              Clear All
-            </Button>
+            {canWrite && (
+              <Button variant="outline" size="sm" onClick={() => setIsClearModalOpen(true)} disabled={loading || total === 0} className="flex-1 sm:flex-none text-red-600 dark:text-red-400 border-red-200 dark:border-red-900/50 hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-700">
+                <AlertTriangle className="h-4 w-4 mr-2" />
+                Clear All
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -537,7 +541,7 @@ export function UsulanTable({ kategori, refreshTrigger }: UsulanTableProps) {
                         onClick={() => setSelectedUsulan(row)}
                       >
                         <FileText className="h-4 w-4 mr-2" />
-                        Detail & Validasi
+                        {canWrite ? 'Detail & Validasi' : 'Detail Lihat'}
                       </Button>
                     </TableCell>
                   </TableRow>

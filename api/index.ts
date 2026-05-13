@@ -498,6 +498,51 @@ app.post('/api/settings/verify-pin', async (req, res) => {
   }
 });
 
+// Get global lock status
+app.get('/api/settings/lock-status', async (req, res) => {
+  try {
+    await ensureSettingsTable();
+    const { rows: pinRows } = await pool.query("SELECT value FROM app_settings WHERE key = 'app_pin'");
+    const { rows: statusRows } = await pool.query("SELECT value FROM app_settings WHERE key = 'app_lock_status'");
+    
+    // Jika belum ada status kunci, kita anggap false (terbuka)
+    const isGlobalLocked = statusRows.length > 0 ? statusRows[0].value === 'true' : false;
+    
+    res.json({ 
+      hasPin: pinRows.length > 0 && !!pinRows[0].value,
+      isGlobalLocked: isGlobalLocked
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Toggle global lock
+app.post('/api/settings/toggle-lock', async (req, res) => {
+  const { pin, locked } = req.body;
+  try {
+    await ensureSettingsTable();
+    const { rows } = await pool.query("SELECT value FROM app_settings WHERE key = 'app_pin'");
+    
+    // Always require PIN to change global lock status if PIN exists
+    if (rows.length > 0 && rows[0].value) {
+      if (rows[0].value !== pin) {
+        return res.status(401).json({ error: 'PIN tidak valid' });
+      }
+    }
+
+    await pool.query(`
+      INSERT INTO app_settings (key, value) 
+      VALUES ('app_lock_status', $1) 
+      ON CONFLICT (key) DO UPDATE SET value = $1
+    `, [locked ? 'true' : 'false']);
+    
+    res.json({ success: true, isGlobalLocked: locked });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Set PIN
 app.post('/api/settings/set-pin', async (req, res) => {
   const { pin, oldPin } = req.body;

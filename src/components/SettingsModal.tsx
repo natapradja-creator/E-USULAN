@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useSecurity } from '@/context/SecurityContext';
-import { Key, Lock, ShieldCheck, X, Trash2, Eye, EyeOff } from 'lucide-react';
+import { Key, Lock, Unlock, ShieldCheck, X, Trash2, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { toast } from 'sonner';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -11,7 +12,7 @@ interface SettingsModalProps {
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
-  const { hasPin, setPin, lock } = useSecurity();
+  const { hasPin, setPin, lockSession, isGlobalLocked, toggleGlobalLock, sessionUnlocked } = useSecurity();
   const [currentPin, setCurrentPin] = useState('');
   const [newPin, setNewPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
@@ -22,36 +23,46 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
 
   const handleSetPin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (newPin !== confirmPin) {
-      return;
-    }
+    if (newPin !== confirmPin) return;
 
     setLoading(true);
     try {
       await setPin(newPin, hasPin ? currentPin : undefined);
-      // Reset state on success
       setCurrentPin('');
       setNewPin('');
       setConfirmPin('');
       onClose();
-    } catch (err) {
-      // Error handled by context toast
-    } finally {
+    } catch (err) {} finally {
+      setLoading(false);
+    }
+  };
+
+  const handleToggleGlobal = async () => {
+    if (!hasPin) {
+      toast.error('Atur PIN terlebih dahulu');
+      return;
+    }
+    
+    const pin = prompt('Masukkan PIN untuk mengonfirmasi perubahan status kunci global:');
+    if (pin === null) return;
+
+    setLoading(true);
+    try {
+      await toggleGlobalLock(pin, !isGlobalLocked);
+    } catch (err) {} finally {
       setLoading(false);
     }
   };
 
   const handleRemovePin = async () => {
-    if (!window.confirm('Apakah Anda yakin ingin menghapus PIN keamanan?')) return;
+    if (!window.confirm('Apakah Anda yakin ingin menghapus PIN keamanan? Aplikasi akan terbuka untuk umum.')) return;
     
     setLoading(true);
     try {
       await setPin('', currentPin);
       setCurrentPin('');
       onClose();
-    } catch (err) {
-      // Error handled by context toast
-    } finally {
+    } catch (err) {} finally {
       setLoading(false);
     }
   };
@@ -70,10 +81,41 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
         </div>
 
         <div className="p-6 space-y-6">
-          <div className="space-y-4">
+          {/* Global Lock Controls */}
+          <div className="p-4 rounded-xl border bg-muted/20 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Lock className={`h-4 w-4 ${isGlobalLocked ? 'text-red-500' : 'text-green-500'}`} />
+                <span className="font-semibold text-sm">Status Kunci Global</span>
+              </div>
+              <div className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${isGlobalLocked ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+                {isGlobalLocked ? 'TERKUNCI' : 'TERBUKA'}
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {isGlobalLocked 
+                ? 'Aplikasi dalam mode Read-Only. Perubahan data dibatasi.' 
+                : 'Aplikasi terbuka untuk umum. Semua aksi diizinkan.'}
+            </p>
+            <Button 
+              variant={isGlobalLocked ? "default" : "outline"} 
+              size="sm" 
+              onClick={handleToggleGlobal}
+              disabled={loading}
+              className="w-full gap-2 h-9"
+            >
+              {isGlobalLocked ? (
+                <><Unlock className="h-4 w-4" /> Buka Kunci Global</>
+              ) : (
+                <><Lock className="h-4 w-4" /> Aktifkan Kunci Global</>
+              )}
+            </Button>
+          </div>
+
+          <div className="space-y-4 pt-2">
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label className="text-sm font-semibold">Status PIN</Label>
+                <Label className="text-sm font-semibold">PIN Keamanan</Label>
                 <div className="flex items-center gap-1.5">
                   <div className={`w-2 h-2 rounded-full ${hasPin ? 'bg-green-500' : 'bg-yellow-500'}`} />
                   <span className="text-xs text-muted-foreground">
@@ -81,15 +123,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                   </span>
                 </div>
               </div>
-              {hasPin && (
+              {sessionUnlocked && (
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  onClick={lock}
+                  onClick={lockSession}
                   className="gap-2 h-8"
                 >
                   <Lock className="h-4 w-4" />
-                  Kunci Sekarang
+                  Kunci Sesi
                 </Button>
               )}
             </div>
@@ -98,16 +140,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
               {hasPin && (
                 <div className="space-y-2">
                   <Label htmlFor="currentPin">PIN Saat Ini</Label>
-                  <div className="relative">
-                    <Input
-                      id="currentPin"
-                      type={showPins ? "text" : "password"}
-                      placeholder="Masukkan PIN lama"
-                      value={currentPin}
-                      onChange={(e) => setCurrentPin(e.target.value)}
-                      required
-                    />
-                  </div>
+                  <Input
+                    id="currentPin"
+                    type={showPins ? "text" : "password"}
+                    placeholder="Wajib untuk update/hapus"
+                    value={currentPin}
+                    onChange={(e) => setCurrentPin(e.target.value)}
+                    required
+                  />
                 </div>
               )}
 
@@ -120,7 +160,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                   value={newPin}
                   onChange={(e) => setNewPin(e.target.value)}
                   required
-                  autoComplete="new-password"
                 />
               </div>
 
@@ -139,11 +178,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                 )}
               </div>
 
-              <div className="flex items-center gap-2 py-1">
+              <div className="flex items-center gap-2">
                 <button 
                   type="button"
                   onClick={() => setShowPins(!showPins)}
-                  className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1.5 transition-colors"
+                  className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1.5"
                 >
                   {showPins ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
                   {showPins ? 'Sembunyikan' : 'Lihat PIN'}
@@ -157,7 +196,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                   disabled={loading || !newPin || newPin !== confirmPin}
                 >
                   <ShieldCheck className="h-4 w-4" />
-                  {hasPin ? 'Ganti PIN' : 'Simpan PIN'}
+                  Update PIN
                 </Button>
                 
                 {hasPin && (
@@ -166,7 +205,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                     variant="destructive" 
                     onClick={handleRemovePin}
                     disabled={loading || !currentPin}
-                    title="Hapus PIN"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -176,8 +214,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
           </div>
         </div>
 
-        <div className="p-4 bg-muted/30 border-t border-border text-[10px] text-center text-muted-foreground uppercase tracking-widest font-bold">
-          Natapradja Security System
+        <div className="p-4 bg-muted/40 border-t border-border text-[10px] text-center text-muted-foreground uppercase tracking-[0.2em] font-black">
+          Security Core v1.0
         </div>
       </div>
     </div>

@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { UsulanTable } from '@/components/UsulanTable';
 import { ImportModal } from '@/components/ImportModal';
 import { Upload, FileText } from 'lucide-react';
+import { useSecurity } from '@/context/SecurityContext';
 
 interface UsulanPageProps {
   kategori: 'HIBAH' | 'POKIR' | 'ALL' | 'Musrembang';
@@ -11,6 +12,7 @@ interface UsulanPageProps {
 export function UsulanPage({ kategori }: UsulanPageProps) {
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const { canWrite } = useSecurity();
 
   const handleImportSuccess = () => {
     setRefreshTrigger(prev => prev + 1);
@@ -30,7 +32,7 @@ export function UsulanPage({ kategori }: UsulanPageProps) {
             {description}
           </p>
         </div>
-        {kategori !== 'ALL' && (
+        {kategori !== 'ALL' && canWrite && (
           <Button onClick={() => setIsImportOpen(true)} className="gap-2 w-full sm:w-auto h-9 text-sm">
             <Upload className="h-4 w-4" />
             Import Excel

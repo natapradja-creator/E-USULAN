@@ -102,6 +102,8 @@ function Sidebar({ isOpen, toggleSidebar, isMobile }: { isOpen: boolean, toggleS
 }
 
 function TopNav({ toggleSidebar, isMobile, onSettingsClick }: { toggleSidebar: () => void, isMobile: boolean, onSettingsClick: () => void }) {
+  const { isGlobalLocked, sessionUnlocked, lockSession } = useSecurity();
+
   return (
     <header className="h-16 flex items-center justify-between lg:justify-end px-4 md:px-8 bg-background border-b border-border sticky top-0 z-30">
       {isMobile && (
@@ -109,29 +111,39 @@ function TopNav({ toggleSidebar, isMobile, onSettingsClick }: { toggleSidebar: (
           <Menu className="h-6 w-6" />
         </button>
       )}
-      <div className="flex items-center gap-2 md:gap-4">
+      <div className="flex items-center gap-2 md:gap-4 font-sans">
+        {isGlobalLocked && (
+          <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold border transition-all ${sessionUnlocked ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200 animate-pulse'}`}>
+            <Shield className={`w-3.5 h-3.5 ${sessionUnlocked ? 'text-green-600' : 'text-red-600'}`} />
+            <span className="hidden xs:inline uppercase tracking-tight">{sessionUnlocked ? 'Sesi Terbuka' : 'Terkunci'}</span>
+          </div>
+        )}
+        
         <ThemeToggle />
-        <Button variant="outline" className="hidden sm:flex rounded-full bg-[#111111] dark:bg-accent dark:text-accent-foreground text-white hover:bg-gray-800 hover:text-white border-0 h-9 px-4 text-sm font-medium">
-          More <ChevronDown className="ml-1 h-4 w-4" />
-        </Button>
-        <button className="p-2 text-muted-foreground hover:bg-accent rounded-full transition-colors">
-          <Search className="h-5 w-5" />
-        </button>
-        <button className="p-2 text-muted-foreground hover:bg-accent rounded-full transition-colors relative">
-          <Bell className="h-5 w-5" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-background"></span>
-        </button>
+        
         <div className="w-8 h-8 rounded-full bg-accent overflow-hidden border border-border">
           <img src="https://i.pravatar.cc/150?u=a042581f4e29026704d" alt="User" className="w-full h-full object-cover" />
         </div>
-        {!isMobile && (
+        
+        <div className="flex items-center gap-1">
           <button 
             onClick={onSettingsClick} 
             className="p-2 text-muted-foreground hover:bg-accent rounded-full transition-colors"
+            title="Keamanan"
           >
             <Settings className="h-5 w-5" />
           </button>
-        )}
+          
+          {sessionUnlocked && (
+            <button 
+              onClick={lockSession} 
+              className="p-2 text-red-500 hover:bg-red-100 rounded-full transition-colors"
+              title="Keluar Sesi"
+            >
+              <Key className="h-5 w-5" />
+            </button>
+          )}
+        </div>
       </div>
     </header>
   );
@@ -141,7 +153,7 @@ function Layout({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const { isLocked } = useSecurity();
+  const { isGlobalLocked, sessionUnlocked } = useSecurity();
 
   useEffect(() => {
     const checkMobile = () => {
@@ -158,13 +170,17 @@ function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen bg-background text-foreground font-sans selection:bg-[#A6F4C5]/30">
-      {isLocked && <LockScreen />}
       <Sidebar 
         isOpen={isSidebarOpen} 
         toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} 
         isMobile={isMobile}
       />
       <div className="flex-1 flex flex-col min-w-0 max-h-screen overflow-hidden">
+        {isGlobalLocked && !sessionUnlocked && (
+          <div className="bg-red-600 text-white text-[10px] md:text-xs py-1 px-4 text-center font-bold uppercase tracking-wider animate-pulse z-[60]">
+            Mode Terbatas (Read-Only) - Silahkan buka kunci untuk melakukan perubahan data
+          </div>
+        )}
         <TopNav 
           toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} 
           isMobile={isMobile} 

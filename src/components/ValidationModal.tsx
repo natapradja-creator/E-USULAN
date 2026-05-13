@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { validateUsulan } from '@/lib/api';
 import { toast } from 'sonner';
+import { useSecurity } from '@/context/SecurityContext';
 import { Plus, Minus } from 'lucide-react';
 import { terbilang } from '@/lib/utils';
 
@@ -40,6 +41,7 @@ function useHistoryCache(key: string, maxItems = 10) {
 }
 
 export function ValidationModal({ isOpen, onClose, usulan, onSuccess }: ValidationModalProps) {
+  const { canWrite } = useSecurity();
   const [catatan, setCatatan] = useState('');
   const [anggaran, setAnggaran] = useState('');
   const [volume, setVolume] = useState('');
@@ -240,62 +242,73 @@ export function ValidationModal({ isOpen, onClose, usulan, onSuccess }: Validati
             </div>
           </div>
 
-          <div className="border-t pt-4 mt-2">
-            <Label htmlFor="catatan" className="font-bold mb-2 block">Catatan Validasi / Rekomendasi SKPD <span className="text-red-500">*</span></Label>
-            <Textarea
-              id="catatan"
-              placeholder="Masukkan catatan validasi (minimal 10 karakter)..."
-              value={catatan}
-              onChange={(e) => setCatatan(e.target.value)}
-              className="min-h-[100px] w-full"
-            />
-            {catatanHistory.length > 0 && (
-              <div className="mt-2 flex flex-wrap gap-2 items-center">
-                <span className="text-xs text-muted-foreground">Riwayat:</span>
-                {catatanHistory.map((h, i) => (
-                  <button
-                    key={i}
-                    type="button"
-                    onClick={() => setCatatan(h)}
-                    title={h}
-                    className="text-[11px] px-2.5 py-1 bg-muted hover:bg-muted/80 text-foreground rounded-full truncate max-w-[200px] border border-border transition-colors cursor-pointer"
-                  >
-                    {h}
-                  </button>
-                ))}
+          {canWrite ? (
+            <div className="border-t pt-4 mt-2">
+              <Label htmlFor="catatan" className="font-bold mb-2 block">Catatan Validasi / Rekomendasi SKPD <span className="text-red-500">*</span></Label>
+              <Textarea
+                id="catatan"
+                placeholder="Masukkan catatan validasi (minimal 10 karakter)..."
+                value={catatan}
+                onChange={(e) => setCatatan(e.target.value)}
+                className="min-h-[100px] w-full"
+              />
+              {catatanHistory.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-2 items-center">
+                  <span className="text-xs text-muted-foreground">Riwayat:</span>
+                  {catatanHistory.map((h, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => setCatatan(h)}
+                      title={h}
+                      className="text-[11px] px-2.5 py-1 bg-muted hover:bg-muted/80 text-foreground rounded-full truncate max-w-[200px] border border-border transition-colors cursor-pointer"
+                    >
+                      {h}
+                    </button>
+                  ))}
+                </div>
+              )}
+              <p className="text-xs text-muted-foreground mt-2">
+                {catatan.length}/10 karakter minimal. Catatan ini akan disimpan ke kolom Rekomendasi SKPD.
+              </p>
+            </div>
+          ) : usulan.status_validasi !== 'DRAFT' && (
+            <div className="border-t pt-4 mt-2">
+              <Label className="font-bold mb-2 block">Catatan Validasi Existing</Label>
+              <div className="p-3 bg-muted rounded-md text-sm italic">
+                {usulan.catatan_validasi || 'Tidak ada catatan.'}
               </div>
-            )}
-            <p className="text-xs text-muted-foreground mt-2">
-              {catatan.length}/10 karakter minimal. Catatan ini akan disimpan ke kolom Rekomendasi SKPD.
-            </p>
-          </div>
+            </div>
+          )}
         </div>
 
         <DialogFooter className="flex gap-2 sm:justify-between mt-4">
-          <Button variant="outline" onClick={onClose} disabled={loading}>Batal</Button>
-          <div className="flex gap-2">
-            <Button 
-              variant="destructive" 
-              onClick={() => handleValidate('DITOLAK')}
-              disabled={loading || catatan.length < 10}
-            >
-              Tolak
-            </Button>
-            <Button 
-              variant="secondary" 
-              onClick={() => handleValidate('DIKEMBALIKAN')}
-              disabled={loading || catatan.length < 10}
-            >
-              Kembalikan
-            </Button>
-            <Button 
-              className="bg-green-600 hover:bg-green-700" 
-              onClick={() => handleValidate('DITERIMA')}
-              disabled={loading || catatan.length < 10}
-            >
-              Terima
-            </Button>
-          </div>
+          <Button variant="outline" onClick={onClose} disabled={loading}>{canWrite ? 'Batal' : 'Tutup'}</Button>
+          {canWrite && (
+            <div className="flex gap-2">
+              <Button 
+                variant="destructive" 
+                onClick={() => handleValidate('DITOLAK')}
+                disabled={loading || catatan.length < 10}
+              >
+                Tolak
+              </Button>
+              <Button 
+                variant="secondary" 
+                onClick={() => handleValidate('DIKEMBALIKAN')}
+                disabled={loading || catatan.length < 10}
+              >
+                Kembalikan
+              </Button>
+              <Button 
+                className="bg-green-600 hover:bg-green-700" 
+                onClick={() => handleValidate('DITERIMA')}
+                disabled={loading || catatan.length < 10}
+              >
+                Terima
+              </Button>
+            </div>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
